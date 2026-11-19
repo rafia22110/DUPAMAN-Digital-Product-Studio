@@ -1,0 +1,57 @@
+[
+  {
+    "id": "core-dupaman-sheet",
+    "title": "גיליון דופמין ניהול (מנויים + מאמרים)",
+    "summary": "גיליון השליטה המרכזי של דופמין לניהול מנויים ומאמרים המחובר ל-/api/subscribe.",
+    "type": "ליבה 00 · Sheets",
+    "sourceName": "Google Sheets",
+    "url": "https://docs.google.com/spreadsheets/d/1ypSdymFV-oufB1YEKzNii9uvm05FwdmzN8K0fBkZxKI/edit?usp=drivesdk",
+    "cards": ["00"],
+    "tags": ["ניהול", "מנויים", "דופמין ניהול", "ליבה"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "core-assets-map",
+    "title": "מפת הנכסים שלי",
+    "summary": "מפת הנכסים הדיגיטליים, הפרויקטים והמאגרים של רפאל ארגנטי / דופמין.",
+    "type": "ליבה 00 · Sheets",
+    "sourceName": "Google Sheets",
+    "url": "https://docs.google.com/spreadsheets/d/11ItH0HTcMLPrDghNsS_UXsawm74e_n7M6NRNCom2Cec/edit?usp=drivesdk",
+    "cards": ["00"],
+    "tags": ["נכסים", "ניהול", "מפה", "דופמין"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "core-personal-branding-2026",
+    "title": "מיתוג אישי 2026 בעידן ה-AI",
+    "summary": "אסטרטגיית מיתוג אישי, שפת תוכן ונוכחות דיגיטלית לשנת 2026.",
+    "type": "ליבה 00 · NotebookLM",
+    "sourceName": "NotebookLM",
+    "url": "https://gemini.google.com/notebook/c3196594-b138-4af6-97bf-6dbb794d7051",
+    "cards": ["00", "04"],
+    "tags": ["מיתוג אישי", "2026", "בינה מלאכותית", "שיווק"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "core-crm-notebook",
+    "title": "מערכת CRM וניהול קהילה",
+    "summary": "מחברת עבודה לניהול קשרי לקוחות, מנויים ותהליכי שימור.",
+    "type": "ליבה 00 · NotebookLM",
+    "sourceName": "NotebookLM",
+    "url": "https://gemini.google.com/notebook/9918644f-0771-44b1-90f9-8c044d31af1e",
+    "cards": ["00"],
+    "tags": ["CRM", "מנויים", "ניהול", "קהילה"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "core-highlevel-marketing",
+    "title": "HighLevel שיווק דיגיטלי",
+    "summary": "אוטומציות שיווק, משפכים וניהול מנויים ולידים באמצעות HighLevel.",
+    "type": "ליבה 00 · NotebookLM",
+    "sourceName": "NotebookLM",
+    "url": "https://gemini.google.com/notebook/86c3162e-598f-40d0-aa34-31317355e8a3",
+    "cards": ["00"],
+    "tags": ["HighLevel", "שיווק דיגיטלי", "אוטומציה", "מנויים"],
+    "autoMatchByTags": false
+  }
+]

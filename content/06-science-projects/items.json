@@ -1,0 +1,79 @@
+[
+  {
+    "id": "sci-space-81",
+    "title": "חלל וקוסמולוגיה (81 מקורות)",
+    "summary": "מחברת ציבורית עשירה עם 81 מקורות על חקר החלל, גלקסיות, טלסקופ ווב וגילויים קוסמיים.",
+    "type": "NotebookLM · 81 מקורות",
+    "sourceName": "NotebookLM · ציבורי",
+    "url": "https://notebooklm.google.com/notebook/d2504036-3d29-4025-8c06-340ac182b6ea",
+    "cards": ["06"],
+    "tags": ["מדע", "חלל", "אסטרונומיה", "81 מקורות", "ג׳יימס ווב"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "sci-fermi-paradox",
+    "title": "חיפוש חיים תבוניים ופרדוקס פרמי",
+    "summary": "מחברת ציבורית הבוחנת את פרדוקס פרמי, אסטרוביולוגיה והחיפוש אחר חיים תבוניים ביקום.",
+    "type": "NotebookLM · ציבורי",
+    "sourceName": "NotebookLM",
+    "url": "https://notebooklm.google.com/notebook/0ef5bb12-d33b-410b-8eee-85d7dfcc3b9f",
+    "cards": ["06"],
+    "tags": ["מדע", "פרדוקס פרמי", "חיים תבוניים", "חלל", "אסטרונומיה"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "sci-solar-system-worksheets",
+    "title": "מערכת השמש — דפי עבודה",
+    "summary": "מערך דפי עבודה ופעילויות מדעיות להוראת מערכת השמש וכוכבי הלכת.",
+    "type": "NotebookLM · חינוך ומדע",
+    "sourceName": "NotebookLM",
+    "url": "https://gemini.google.com/notebook/b43ffe6c-7c54-4f41-8ccc-e4fbfd699d86",
+    "cards": ["06", "02"],
+    "tags": ["מדע", "מערכת השמש", "דפי עבודה", "חינוך", "אסטרונומיה"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "sci-electricity-edison-tesla",
+    "title": "יסודות החשמל: מאדיסון לטסלה",
+    "summary": "מסע מדעי והיסטורי מיסודות החשמל וזרם ישר ועד המהפכה של ניקולה טסלה.",
+    "type": "NotebookLM · פיזיקה",
+    "sourceName": "NotebookLM",
+    "url": "https://gemini.google.com/notebook/10ae3860-60ec-46b3-9f73-f07dc61a387c",
+    "cards": ["06", "02"],
+    "tags": ["פיזיקה", "חשמל", "טסלה", "אדיסון", "מדע", "חינוך"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "sci-golden-machine-geometry",
+    "title": "המכונה המוזהבת: גיאומטריה בדידה",
+    "summary": "חקר תבניות, גיאומטריה בדידה, יחס הזהב ומבנים מתמטיים בטבע ובטכנולוגיה.",
+    "type": "NotebookLM · מתמטיקה",
+    "sourceName": "NotebookLM",
+    "url": "https://gemini.google.com/notebook/81b1bd91-b531-44e3-be55-0fa34e0f3cb1",
+    "cards": ["06"],
+    "tags": ["מדע", "גיאומטריה", "מתמטיקה", "יחס הזהב"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "sci-destruction-creation-nature",
+    "title": "הדינמיקה בין הרס לבנייה בטבע",
+    "summary": "עיון מדעי-פילוסופי במחזורי טבע, אקולוגיה והתחדשות מתוך שינוי.",
+    "type": "NotebookLM · טבע",
+    "sourceName": "NotebookLM",
+    "url": "https://gemini.google.com/notebook/7d57ae78-24f8-43b6-b467-2b84062aa24c",
+    "cards": ["06"],
+    "tags": ["מדע", "טבע", "אקולוגיה", "קיימות"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "sci-energy-minerals-salts",
+    "title": "אנרגיה, מחצבים ומלחים",
+    "summary": "מחברת מדעית על משאבי טבע, אנרגיה, כימיה של מחצבים ומלחים ושימושיהם.",
+    "type": "NotebookLM · כימיה",
+    "sourceName": "NotebookLM",
+    "url": "https://gemini.google.com/notebook/d3587b2f-9213-4979-bf7e-a3e5c367e7be",
+    "cards": ["06"],
+    "tags": ["מדע", "אנרגיה", "מחצבים", "מלחים", "כימיה"],
+    "autoMatchByTags": false
+  }
+]

@@ -1,0 +1,74 @@
+[
+  {
+    "id": "heritage-rambam-75",
+    "title": "פילוסופיית הדת אצל הרמב״ם (75 מקורות)",
+    "summary": "מחברת עומק ציבורית עם 75 מקורות על מורה נבוכים, שכל ואמונה במשנת הרמב״ם.",
+    "type": "NotebookLM · 75 מקורות",
+    "subTab": "heritage",
+    "sourceName": "NotebookLM · ציבורי",
+    "url": "https://notebooklm.google.com/notebook/710d4847-5f74-4412-9144-54df11922bad",
+    "cards": ["02"],
+    "tags": ["הגות", "יהדות", "רמב״ם", "פילוסופיה", "מורשת", "75 מקורות"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "heritage-leibowitz-39",
+    "title": "ישעיהו ליבוביץ׳ (39 מקורות)",
+    "summary": "מחברת עומק ציבורית עם 39 מקורות על הגותו של פרופ׳ ישעיהו ליבוביץ׳ — מדע, ערכים ואמונה.",
+    "type": "NotebookLM · 39 מקורות",
+    "subTab": "heritage",
+    "sourceName": "NotebookLM · ציבורי",
+    "url": "https://notebooklm.google.com/notebook/99396cdf-cb48-4c3f-8847-f0741d407de1",
+    "cards": ["02", "06"],
+    "tags": ["הגות", "ישעיהו ליבוביץ׳", "יהדות", "פילוסופיה", "מדע וערכים"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "heritage-israel-roots",
+    "title": "השורשים ההיסטוריים של עם ישראל",
+    "summary": "מחברת ציבורית החוקרת את התהוות עם ישראל, ארכיאולוגיה והיסטוריה עתיקה.",
+    "type": "NotebookLM · היסטוריה",
+    "subTab": "heritage",
+    "sourceName": "NotebookLM · ציבורי",
+    "url": "https://notebooklm.google.com/notebook/3e5a0b95-8cdb-4de3-be99-25d46b6ea8ac",
+    "cards": ["02"],
+    "tags": ["היסטוריה", "יהדות", "שורשים", "מורשת", "עם ישראל"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "heritage-journeys-prophecies",
+    "title": "מסעות, נבואות והגדה",
+    "summary": "מחברת ציבורית המחברת נדודים, נבואה, הגדה של פסח ומשמעות הזיכרון ההיסטורי.",
+    "type": "NotebookLM · מורשת",
+    "subTab": "heritage",
+    "sourceName": "NotebookLM · ציבורי",
+    "url": "https://notebooklm.google.com/notebook/f9a2fb89-523f-4be5-a85c-c11947165137",
+    "cards": ["02"],
+    "tags": ["הגות", "יהדות", "נבואה", "הגדה", "מורשת"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "heritage-maccabees",
+    "title": "מרד החשמונאים",
+    "summary": "מחברת ציבורית הסוקרת את הרקע ההיסטורי, התרבותי והרוחני של מרד החשמונאים.",
+    "type": "NotebookLM · היסטוריה",
+    "subTab": "heritage",
+    "sourceName": "NotebookLM · ציבורי",
+    "url": "https://notebooklm.google.com/notebook/7229bbf7-29ce-4ea5-8acd-105b5813e4c2",
+    "cards": ["02"],
+    "tags": ["היסטוריה", "חשמונאים", "יהדות", "מורשת"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "heritage-hannah-arendt",
+    "title": "חנה ארנדט — הגות פוליטית ואחריות",
+    "summary": "מחברת עומק על משנתה של חנה ארנדט — חשיבה ביקורתית, אחריות מוסרית והמרחב הציבורי.",
+    "type": "NotebookLM · פילוסופיה",
+    "subTab": "heritage",
+    "sourceName": "NotebookLM",
+    "url": "https://gemini.google.com/notebook/30a0aba7-b79f-4714-96c2-ab431b4a8458",
+    "cards": ["02", "03"],
+    "tags": ["הגות", "חנה ארנדט", "פילוסופיה", "היסטוריה", "חשיבה ביקורתית"],
+    "autoMatchByTags": false
+  }
+]

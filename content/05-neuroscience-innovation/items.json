@@ -1,0 +1,68 @@
+[
+  {
+    "id": "neuro-consciousness-design-170",
+    "title": "תכנון התודעה (170 מקורות)",
+    "summary": "מחברת מחקר ציבורית עצומה עם 170 מקורות על תודעה, קוגניציה, מוח ותכנון מנטלי.",
+    "type": "NotebookLM · 170 מקורות",
+    "sourceName": "NotebookLM · ציבורי",
+    "url": "https://notebooklm.google.com/notebook/021d819f-85d5-4d37-9078-bc865077ab9c",
+    "cards": ["05"],
+    "tags": ["מדעי המוח", "תודעה", "קוגניציה", "170 מקורות", "מחקר"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "neuro-edge-brains",
+    "title": "הספקטרום האנושי: מוחות הקצה",
+    "summary": "מחברת ציבורית החוקרת מגוון נוירולוגי, מוחות קצה, יצירתיות גבוהה וקשב ייחודי.",
+    "type": "NotebookLM · ציבורי",
+    "sourceName": "NotebookLM",
+    "url": "https://notebooklm.google.com/notebook/ea8f6bd3-9b3e-4001-988a-39b51777a13e",
+    "cards": ["05", "03"],
+    "tags": ["מדעי המוח", "מוחות הקצה", "ספקטרום", "פסיכולוגיה", "קשב"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "neuro-melatonin-pineal",
+    "title": "ביוסינתזה של מלטונין ובלוטת האיצטרובל",
+    "summary": "מחקר ציבורי מעמיק על מלטונין, שעון ביולוגי, שינה ובלוטת האיצטרובל.",
+    "type": "NotebookLM · ציבורי",
+    "sourceName": "NotebookLM",
+    "url": "https://notebooklm.google.com/notebook/4e5eff15-75d1-4eb6-a26a-dde07dd3463b",
+    "cards": ["05", "03"],
+    "tags": ["מדעי המוח", "מלטונין", "בלוטת האיצטרובל", "שינה", "בריאות"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "neuro-visual-ai-diagnosis",
+    "title": "בינה מלאכותית באבחון חזותי (עין / פנים)",
+    "summary": "מחברת ציבורית המשלבת מדעי המוח ו-AI בזיהוי ואבחון חזותי מתקדם (Bio-Oracle).",
+    "type": "NotebookLM · ציבורי",
+    "sourceName": "NotebookLM",
+    "url": "https://notebooklm.google.com/notebook/0e5d4e57-7336-4ff9-838f-6fcb1f5b4fd7",
+    "cards": ["05", "04"],
+    "tags": ["מדעי המוח", "אבחון חזותי", "Bio-Oracle", "בינה מלאכותית", "חדשנות"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "neuro-dopamine-habits",
+    "title": "מעגלי דופמין והרגלים",
+    "summary": "מסמך מחקר מקיף על מעגלי הדופמין במוח, היווצרות הרגלים ובניית מוטיבציה יציבה.",
+    "type": "מחקר · Google Docs",
+    "sourceName": "Google Docs",
+    "url": "https://docs.google.com/document/d/1R4b3F-VaRgOuZOZbEkjTGT-r23wix5HP0Y2buXd-IJc/edit?usp=drivesdk",
+    "cards": ["05", "03"],
+    "tags": ["מדעי המוח", "דופמין", "הרגלים", "מוטיבציה", "קשב"],
+    "autoMatchByTags": false
+  },
+  {
+    "id": "neuro-dopamine-failure",
+    "title": "דופמין והתגברות על כישלון",
+    "summary": "סקירה מעמיקה על תפקיד מערכת הדופמין בחוסן מנטלי, למידה מטעויות והתמדה.",
+    "type": "מחקר · Drive",
+    "sourceName": "Google Drive",
+    "url": "https://drive.google.com/file/d/1tVw2T4xdDIhYtIbPamIJ8QyRpJFVLcUp/view?usp=drivesdk",
+    "cards": ["05", "03"],
+    "tags": ["מדעי המוח", "דופמין", "כישלון", "חוסן", "פסיכולוגיה"],
+    "autoMatchByTags": false
+  }
+]

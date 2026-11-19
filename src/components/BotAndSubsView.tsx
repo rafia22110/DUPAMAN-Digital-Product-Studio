@@ -20,6 +20,7 @@ import {
 import {
   ALL_REPOSITORY_CONTENT,
   getAllUniqueTags,
+  getContentForCard,
   searchRepositoryContent,
 } from '../data/contentRegistry';
 import { CrystalButton, CrystalCard3D, CrystalLinkButton } from './GlassPrimitives';
@@ -160,7 +161,8 @@ export function BotAndSubsView({
   onOpenLogoSection,
 }: BotAndSubsViewProps) {
   const [mobileView, setMobileView] = useState<'bot' | 'subs'>('bot');
-  const [subsTab, setSubsTab] = useState<'my' | 'list'>('my');
+  const [subsTab, setSubsTab] = useState<'my' | 'list' | 'core'>('my');
+  const coreAssets = useMemo(() => getContentForCard('00'), []);
 
   const [subscribers, setSubscribers] = useState<SubscriberEntry[]>(() => {
     try {
@@ -581,10 +583,50 @@ export function BotAndSubsView({
                     >
                       מנויים ({subscribers.length})
                     </CrystalButton>
+                    <CrystalButton
+                      hue="gold"
+                      size="sm"
+                      active={subsTab === 'core'}
+                      onClick={() => setSubsTab('core')}
+                      className="px-2.5 py-1 text-[11px]"
+                    >
+                      נכסי 00
+                    </CrystalButton>
                   </div>
                 </div>
 
-                {subsTab === 'my' ? (
+                {subsTab === 'core' ? (
+                  <div className="mt-3 flex min-h-0 flex-1 flex-col gap-2 overflow-y-auto [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
+                    {coreAssets.map((asset) => (
+                      <div
+                        key={asset.id}
+                        className="flex items-center justify-between gap-2 rounded-xl border border-white/14 bg-white/[0.04] px-3 py-2.5"
+                      >
+                        <div className="min-w-0">
+                          <div className="truncate text-xs font-medium text-white">
+                            {asset.title}
+                          </div>
+                          <div className="truncate text-[11px] text-[#bac4d6]">
+                            {asset.summary}
+                          </div>
+                        </div>
+                        {asset.url && (
+                          <CrystalLinkButton
+                            href={asset.url}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            hue="gold"
+                            size="sm"
+                            className="shrink-0 px-2.5 py-1 text-[11px]"
+                          >
+                            <span>פתח</span>
+                            <ExternalLink className="h-3 w-3" />
+                          </CrystalLinkButton>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : subsTab === 'my' ? (
                   <form
                     onSubmit={handleSaveSub}
                     className="mt-3 flex min-h-0 flex-1 flex-col justify-between gap-3"
