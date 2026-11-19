@@ -1,7 +1,15 @@
 {
-  "name": "react-example",
+  "name": "dupaman-studio",
   "private": true,
-  "version": "0.0.0",
+  "version": "1.0.0",
+  "description": "DUPAMAN — Zero-Scroll 7-Brain Spatial Knowledge Platform (Heritage · Education · AI)",
+  "license": "MIT",
+  "author": "Rafael Argenti <rafia22110@users.noreply.github.com>",
+  "homepage": "https://github.com/rafia22110/dupaman",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/rafia22110/dupaman.git"
+  },
   "type": "module",
   "scripts": {
     "dev": "tsx server.ts",
