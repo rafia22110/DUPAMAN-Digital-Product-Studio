@@ -546,7 +546,7 @@ async function startServer() {
         return;
       }
 
-      // Read live tagged content items from /content/**/*.json so Gemini always knows every uploaded item & tag
+      // Read approved live tagged content items (.json & .md) from /content/** so Gemini knows ONLY user-approved items & tags
       const contentDir = path.join(__dirname, 'content');
       const liveItemsSummary: string[] = [];
       const scanContentDir = (dir: string) => {
@@ -561,7 +561,15 @@ async function startServer() {
               const arr = Array.isArray(parsed) ? parsed : [parsed];
               for (const raw of arr) {
                 if (raw && typeof raw === 'object' && 'title' in raw) {
-                  const o = raw as { title?: string; cards?: string[]; tags?: string[]; summary?: string };
+                  const o = raw as {
+                    title?: string;
+                    cards?: string[];
+                    tags?: string[];
+                    summary?: string;
+                    draft?: boolean;
+                    approved?: boolean;
+                  };
+                  if (o.draft === true || o.approved === false) continue;
                   liveItemsSummary.push(
                     `- ${o.title} | כרטיסיות: ${(o.cards || []).join(',')} | תגיות: ${(o.tags || []).join(', ')} | ${o.summary || ''}`
                   );
@@ -569,6 +577,29 @@ async function startServer() {
               }
             } catch {
               // ignore malformed content file
+            }
+          } else if (
+            entry.name.endsWith('.md') &&
+            !entry.name.startsWith('_') &&
+            entry.name.toLowerCase() !== 'readme.md'
+          ) {
+            try {
+              const rawMd = fs.readFileSync(full, 'utf-8');
+              const fm = rawMd.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+              if (fm) {
+                const block = fm[1];
+                if (/draft:\s*true/i.test(block) || /approved:\s*false/i.test(block)) continue;
+                const titleM = block.match(/title:\s*["']?([^"'\r\n]+)["']?/);
+                const tagsM = block.match(/tags:\s*\[([^\]]*)\]/);
+                const cardsM = block.match(/cards:\s*\[([^\]]*)\]/);
+                if (titleM?.[1]) {
+                  liveItemsSummary.push(
+                    `- ${titleM[1].trim()} | כרטיסיות: ${cardsM?.[1] || ''} | תגיות: ${tagsM?.[1] || ''}`
+                  );
+                }
+              }
+            } catch {
+              // ignore unreadable markdown file
             }
           }
         }
