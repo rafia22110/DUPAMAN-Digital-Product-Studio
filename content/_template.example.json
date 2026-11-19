@@ -1,0 +1,14 @@
+{
+  "id": "example-item-001",
+  "title": "כותרת התוכן לדוגמה",
+  "summary": "תיאור קצר של שורה-שתיים שמופיע על כרטיסיית הזכוכית.",
+  "details": "פירוט מלא יותר שנפתח כשלוחצים על הכרטיסייה (אופציונלי).",
+  "type": "מדריך",
+  "section": "guides",
+  "sourceName": "DUPAMAN Academy",
+  "url": "https://example.com",
+  "publishedAt": "2026-11-19",
+  "cards": ["02", "04"],
+  "tags": ["חינוך", "בינה מלאכותית", "אקדמיה", "פעילות חינוכית"],
+  "autoMatchByTags": true
+}
