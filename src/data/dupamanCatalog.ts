@@ -8,7 +8,7 @@ export interface NewsGuideItem {
   sourceName: string;
   summary: string;
   url: string;
-  publishedAt: string; // ISO date YYYY-MM-DD
+  publishedAt: string;
 }
 
 export interface PersonalContentItem {
@@ -24,7 +24,7 @@ export interface PersonalContentItem {
 
 export interface BrainDomain {
   id: string;
-  indexLabel: string;
+  indexLabel: '01' | '02' | '03' | '04' | '05' | '06';
   kicker: string;
   title: string;
   shortTitle: string;
@@ -61,30 +61,27 @@ export function formatDaysAgoHebrew(isoDate: string): string {
   return `לפני ${days} ימים`;
 }
 
-/**
- * Clean reset: empty until we build each card's contents one by one.
- */
 export const NEWS_AND_GUIDES_FEED: NewsGuideItem[] = [];
 
 export const DUPAMAN_DOMAINS: BrainDomain[] = [
   {
     id: 'brain-top-left',
     indexLabel: '01',
-    kicker: 'News & Guides · 30 Days',
-    title: 'חדשות ומדריכים',
-    shortTitle: 'חדשות ומדריכים',
-    description: 'מחולק לחדשות ומדריכים — תכנים חדשים עד 30 יום בלבד.',
+    kicker: 'Agentic Interfaces',
+    title: 'ממשקי מחר',
+    shortTitle: 'ממשקי מחר',
+    description: 'אפליקציות סוכן וממשקי "כל אתר = סוכן" המחליפים ניווט מסורתי.',
     hue: 'cyan',
-    kind: 'news-hub',
+    kind: 'personal-hub',
     items: [],
   },
   {
     id: 'brain-mid-left',
     indexLabel: '02',
-    kicker: 'Education',
-    title: 'חינוך ולמידה פעילה',
-    shortTitle: 'חינוך ולמידה',
-    description: 'מוכן לבניית התכנים שלך.',
+    kicker: 'Machine Intelligence',
+    title: 'מוח מכונה',
+    shortTitle: 'מוח מכונה',
+    description: 'פלטפורמות בינה מלאכותית, סוכנים ואוטומציה חיה.',
     hue: 'cyan',
     kind: 'personal-hub',
     items: [],
@@ -92,10 +89,10 @@ export const DUPAMAN_DOMAINS: BrainDomain[] = [
   {
     id: 'brain-bottom-left',
     indexLabel: '03',
-    kicker: 'Psychology & Health',
-    title: 'פסיכולוגיה ובריאות',
-    shortTitle: 'פסיכולוגיה ובריאות',
-    description: 'מוכן לבניית התכנים שלך.',
+    kicker: 'Live 3D Learning',
+    title: 'למידה חיה',
+    shortTitle: 'למידה חיה',
+    description: 'סביבות למידה בתלת-ממד וכיתות אינטראקטיביות.',
     hue: 'gold',
     kind: 'personal-hub',
     items: [],
@@ -103,10 +100,10 @@ export const DUPAMAN_DOMAINS: BrainDomain[] = [
   {
     id: 'brain-top-right',
     indexLabel: '04',
-    kicker: 'Artificial Intelligence',
-    title: 'בינה מלאכותית יוצרת',
-    shortTitle: 'בינה מלאכותית',
-    description: 'מוכן לבניית התכנים שלך.',
+    kicker: 'Attention Architecture',
+    title: 'אדריכלות הקשב',
+    shortTitle: 'אדריכלות הקשב',
+    description: 'מודלים וכלים למוחות הקצה, קשב ויתרון קוגניטיבי.',
     hue: 'cyan',
     kind: 'personal-hub',
     items: [],
@@ -114,10 +111,10 @@ export const DUPAMAN_DOMAINS: BrainDomain[] = [
   {
     id: 'brain-mid-right',
     indexLabel: '05',
-    kicker: 'Neuroscience & Innovation',
-    title: 'מדעי המוח וקוגניציה',
-    shortTitle: 'מדעי המוח',
-    description: 'מוכן לבניית התכנים שלך.',
+    kicker: 'Spirit & Origin',
+    title: 'רוח ומקור',
+    shortTitle: 'רוח ומקור',
+    description: 'תודעה, פילוסופיה ומחקרי עומק בציוויליזציה האנושית.',
     hue: 'cyan',
     kind: 'personal-hub',
     items: [],
@@ -125,10 +122,10 @@ export const DUPAMAN_DOMAINS: BrainDomain[] = [
   {
     id: 'brain-bottom-right',
     indexLabel: '06',
-    kicker: 'Science & Projects',
-    title: 'מדע, פיזיקה ואסטרונומיה',
-    shortTitle: 'מדע וחלל',
-    description: 'מוכן לבניית התכנים שלך.',
+    kicker: 'Venture Room',
+    title: 'חדר המיזמים',
+    shortTitle: 'חדר המיזמים',
+    description: 'מיזמים טכנולוגיים להאצה, רגולציה והשקעה.',
     hue: 'gold',
     kind: 'personal-hub',
     items: [],

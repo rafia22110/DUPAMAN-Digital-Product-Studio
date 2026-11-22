@@ -1,0 +1,52 @@
+{
+  "name": "DUPAMAN Digital Product Studio",
+  "description": "Agentic Digital Product Studio by Rafael Argenti — building agentic interfaces, live 3D learning environments, AI systems, and attention architecture.",
+  "url": "https://dupaman.vercel.app",
+  "version": "1.0.0",
+  "protocol": "a2a/1.0",
+  "defaultInputModes": ["text/plain", "application/json"],
+  "defaultOutputModes": ["application/json", "text/plain"],
+  "provider": {
+    "organization": "DUPAMAN Studio",
+    "founder": "Rafael Argenti",
+    "url": "https://dupaman.vercel.app"
+  },
+  "endpoints": {
+    "a2a": "/api/a2a",
+    "subscribe": "/api/subscribe"
+  },
+  "capabilities": {
+    "streaming": false,
+    "pushNotifications": false,
+    "stateTransitionHistory": true
+  },
+  "skills": [
+    {
+      "id": "list_exhibits",
+      "name": "List Studio Exhibits",
+      "description": "Returns the 6 curated exhibits across nodes 01–06 (ממשקי מחר, מוח מכונה, למידה חיה, אדריכלות הקשב, רוח ומקור, חדר המיזמים) in structured JSON.",
+      "method": "GET",
+      "endpoint": "/api/a2a",
+      "tags": ["exhibits", "catalog", "agentic-ui", "3d-learning", "ventures"]
+    },
+    {
+      "id": "request_prototype",
+      "name": "Request Prototype / Demo / Venture Access",
+      "description": "Submits a prototype build request, live demo scheduling, or Venture Room access request directly into DUPAMAN Studio's subscription & lead pipeline.",
+      "method": "POST",
+      "endpoint": "/api/a2a",
+      "inputSchema": {
+        "type": "object",
+        "required": ["email"],
+        "properties": {
+          "name": { "type": "string" },
+          "email": { "type": "string", "format": "email" },
+          "topics": { "type": "array", "items": { "type": "string" } },
+          "nodeCode": { "type": "string", "enum": ["01", "02", "03", "04", "05", "06"] },
+          "notes": { "type": "string" }
+        }
+      },
+      "tags": ["prototype", "demo", "venture-room", "booking"]
+    }
+  ]
+}

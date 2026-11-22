@@ -5,6 +5,7 @@ import path from 'node:path';
 import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
+import { STUDIO_EXHIBITS } from './src/data/studioSamples.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -461,67 +462,140 @@ async function startServer() {
     }
   });
 
-  // Subscription endpoint (forwards to DUPAMAN_SCRIPT_URL Apps Script webhook when configured)
+  // Shared subscription / prototype-request pipeline (forwards to DUPAMAN_SCRIPT_URL when configured)
   const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  app.post('/api/subscribe', async (req: Request, res: Response) => {
-    try {
-      const body = req.body as {
-        name?: string;
-        email?: string;
-        topics?: string[] | string;
-        source?: string;
-        website?: string;
+  async function processSubscribePayload(body: {
+    name?: string;
+    email?: string;
+    topics?: string[] | string;
+    source?: string;
+    website?: string;
+  }): Promise<{ statusCode: number; payload: Record<string, unknown> }> {
+    if (body.website) {
+      return { statusCode: 200, payload: { ok: true, status: 'ignored' } };
+    }
+
+    const name = String(body.name ?? '').trim().slice(0, 100);
+    const email = String(body.email ?? '').trim().toLowerCase();
+    const source = String(body.source ?? 'website').trim().slice(0, 60);
+    const topics = Array.isArray(body.topics)
+      ? body.topics.map((t) => String(t).trim()).filter(Boolean).slice(0, 10)
+      : String(body.topics ?? 'כללי').trim().slice(0, 150);
+
+    if (!email || !EMAIL_REGEX.test(email)) {
+      return {
+        statusCode: 400,
+        payload: { ok: false, error: 'נא להזין כתובת אימייל תקינה.' },
       };
+    }
 
-      if (body.website) {
-        res.json({ ok: true, status: 'ignored' });
-        return;
-      }
+    const scriptUrl = process.env.DUPAMAN_SCRIPT_URL;
+    const secret = process.env.DUPAMAN_WEBHOOK_SECRET;
 
-      const name = String(body.name ?? '').trim().slice(0, 100);
-      const email = String(body.email ?? '').trim().toLowerCase();
-      const source = String(body.source ?? 'website').trim().slice(0, 60);
-      const topics = Array.isArray(body.topics)
-        ? body.topics.map((t) => String(t).trim()).filter(Boolean).slice(0, 10)
-        : String(body.topics ?? 'כללי').trim().slice(0, 150);
-
-      if (!email || !EMAIL_REGEX.test(email)) {
-        res.status(400).json({ ok: false, error: 'נא להזין כתובת אימייל תקינה.' });
-        return;
-      }
-
-      const scriptUrl = process.env.DUPAMAN_SCRIPT_URL;
-      const secret = process.env.DUPAMAN_WEBHOOK_SECRET;
-
-      if (scriptUrl) {
-        const upstream = await fetch(scriptUrl, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ secret, name, email, topics, source }),
-          redirect: 'follow',
-        });
-        if (upstream.ok) {
-          const result = (await upstream.json()) as { ok?: boolean; status?: string; id?: string };
-          if (result.ok) {
-            res.json({
+    if (scriptUrl) {
+      const upstream = await fetch(scriptUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ secret, name, email, topics, source }),
+        redirect: 'follow',
+      });
+      if (upstream.ok) {
+        const result = (await upstream.json()) as { ok?: boolean; status?: string; id?: string };
+        if (result.ok) {
+          return {
+            statusCode: 200,
+            payload: {
               ok: true,
               status: result.status || 'created',
               id: result.id ?? `DUP-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
-            });
-            return;
-          }
+            },
+          };
         }
       }
+    }
 
-      res.json({
+    return {
+      statusCode: 200,
+      payload: {
         ok: true,
         status: 'created',
         id: `DUP-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
-      });
+      },
+    };
+  }
+
+  app.post('/api/subscribe', async (req: Request, res: Response) => {
+    try {
+      const { statusCode, payload } = await processSubscribePayload(req.body ?? {});
+      res.status(statusCode).json(payload);
     } catch (err) {
       res.status(500).json({
         ok: false,
         error: err instanceof Error ? err.message : 'שגיאה בעיבוד ההרשמה.',
+      });
+    }
+  });
+
+  // A2A (Agent-to-Agent) isolated JSON API layer
+  app.get('/api/a2a', (req: Request, res: Response) => {
+    const q = String(req.query.q ?? '').trim().toLowerCase();
+    const nodeFilter = String(req.query.node ?? '').trim();
+
+    let exhibits = STUDIO_EXHIBITS;
+    if (nodeFilter) {
+      exhibits = exhibits.filter((e) => e.nodeCode === nodeFilter.padStart(2, '0'));
+    }
+    if (q) {
+      exhibits = exhibits.filter(
+        (e) =>
+          e.title.toLowerCase().includes(q) ||
+          e.nodeTitle.toLowerCase().includes(q) ||
+          e.summary.toLowerCase().includes(q) ||
+          e.techTags.some((t) => t.toLowerCase().includes(q))
+      );
+    }
+
+    res.json({
+      agent: 'DUPAMAN Digital Product Studio',
+      protocol: 'a2a/1.0',
+      exhibits,
+    });
+  });
+
+  app.post('/api/a2a', async (req: Request, res: Response) => {
+    try {
+      const body = (req.body ?? {}) as {
+        name?: string;
+        email?: string;
+        topics?: string[] | string;
+        nodeCode?: string;
+        notes?: string;
+        source?: string;
+      };
+
+      const matchedNode = body.nodeCode
+        ? STUDIO_EXHIBITS.find((e) => e.nodeCode === String(body.nodeCode).padStart(2, '0'))
+        : undefined;
+
+      const topics =
+        body.topics ?? (matchedNode ? [matchedNode.nodeTitle] : ['ממשקי מחר']);
+
+      const { statusCode, payload } = await processSubscribePayload({
+        name: body.name || 'External A2A Agent',
+        email: body.email,
+        topics,
+        source: body.source || 'a2a-gateway',
+      });
+
+      res.status(statusCode).json({
+        protocol: 'a2a/1.0',
+        skill: 'request_prototype',
+        ...payload,
+      });
+    } catch (err) {
+      res.status(500).json({
+        ok: false,
+        error: err instanceof Error ? err.message : 'A2A request failed.',
       });
     }
   });
@@ -607,24 +681,24 @@ async function startServer() {
       scanContentDir(contentDir);
 
       const ai = new GoogleGenAI({ apiKey });
+      const studioList = STUDIO_EXHIBITS.map(
+        (ex) => `${ex.nodeCode}. ${ex.nodeTitle}: ${ex.title} — ${ex.summary}`
+      ).join('\n');
       const context = [
-        'אתה הבוט המרכזי של דופמין (DUPAMAN) מאת רפאל ארגנטי — מרחב ידע ללא גלילה.',
-        '6 המוחות באתר:',
-        '01. חדשות ומדריכים (תכנים חדשים עד 30 יום, מחולק לחדשות ומדריכים).',
-        '02. חינוך ולמידה פעילה.',
-        '03. פסיכולוגיה ובריאות.',
-        '04. בינה מלאכותית יוצרת.',
-        '05. מדעי המוח וקוגניציה.',
-        '06. מדע, פיזיקה ואסטרונומיה.',
+        'אתה הבוט המארח של DUPAMAN Digital Product Studio מאת רפאל ארגנטי.',
+        '7 שמות הסטודיו הרשמיים:',
+        '00. הסטודיו · כרטיס ביקור חי',
+        studioList,
         liveItemsSummary.length > 0
-          ? `תכנים פעילים במאגר (content/):\n${liveItemsSummary.slice(0, 60).join('\n')}`
-          : 'מאגר התכנים (content/) מאופס כרגע ומוכן להוספת תכנים עם תגיות.',
-        `יש ${subscribersCount ?? 0} מנויים במערכת.`,
+          ? `תכנים נוספים במאגר:\n${liveItemsSummary.slice(0, 40).join('\n')}`
+          : '',
         activeSubscriber
-          ? `מנוי פעיל: ${activeSubscriber.name} (${activeSubscriber.id}), סטטוס: ${activeSubscriber.status}, נושאים: ${(activeSubscriber.topics || []).join(', ')}.`
-          : 'המשתמש טרם נרשם כמנוי בדפדפן זה.',
-        'ענה בעברית תמציתית, בהירה וחמה (2-3 משפטים).',
-      ].join('\n');
+          ? `פונה פעיל: ${activeSubscriber.name || ''} (${activeSubscriber.id || ''})`
+          : '',
+        'ענה בעברית תמציתית, אלגנטית וחמה (עד 2-3 משפטים) והפנה ליצירה המתאימה.',
+      ]
+        .filter(Boolean)
+        .join('\n');
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
