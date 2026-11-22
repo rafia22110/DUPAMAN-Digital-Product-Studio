@@ -90,7 +90,7 @@ export function DomainIndexView({
         {/* Single Clean Luxury Exhibit Template Centered in Viewport */}
         <section className="my-4 flex min-h-0 flex-1 items-center justify-center">
           {exhibit ? (
-            <div className="w-full max-w-2xl">
+            <div className="w-full max-w-5xl">
               <StudioExhibitCard
                 exhibit={exhibit}
                 onOpenInBot={(prompt, topic) => onOpenBot(prompt, topic)}

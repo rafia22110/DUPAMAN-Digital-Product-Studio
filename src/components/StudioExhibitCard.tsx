@@ -1,6 +1,7 @@
 import { type FormEvent, useState } from 'react';
 import { ArrowUpRight, Bot, Box, Play, ShieldCheck, Sparkles, Terminal, X } from 'lucide-react';
 import type { StudioExhibitSample } from '../data/studioSamples';
+import { ExhibitLiveStage } from './ExhibitLiveStage';
 import { CrystalButton, CrystalCard3D, CrystalLinkButton } from './GlassPrimitives';
 
 interface StudioExhibitCardProps {
@@ -208,8 +209,8 @@ export function StudioExhibitCard({
       <CrystalCard3D hue={exhibit.hue} className="w-full">
         <div
           dir="rtl"
-          className={`relative flex flex-col justify-between ${
-            compact ? 'gap-3 p-4' : 'gap-5 p-6 sm:p-8'
+          className={`relative grid grid-cols-1 ${
+            compact ? 'gap-3 p-4' : 'gap-6 p-6 sm:p-8 lg:grid-cols-12'
           }`}
         >
           {/* Ambient Luxury Accent Aura */}
@@ -220,122 +221,136 @@ export function StudioExhibitCard({
             }`}
           />
 
-          <div className="relative">
-            {/* Top row: node code + live status badge */}
-            <div className="flex items-center justify-between gap-2">
-              <div className="flex items-center gap-2 text-xs text-[#dce0ea]/90">
+          {/* Left/Right Info Column */}
+          <div
+            className={`relative flex flex-col justify-between ${
+              compact ? '' : 'gap-5 lg:col-span-6'
+            }`}
+          >
+            <div>
+              {/* Top row: node code + live status badge */}
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex items-center gap-2 text-xs text-[#dce0ea]/90">
+                  <span
+                    dir="ltr"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                    className={`rounded-md border px-2 py-0.5 text-[11px] font-bold tracking-wider ${
+                      isGold
+                        ? 'border-[#f8d478]/35 bg-[#f2be4e]/12 text-[#f8d478]'
+                        : 'border-[#84e8ff]/35 bg-[#48d6fc]/12 text-[#84e8ff]'
+                    }`}
+                  >
+                    {exhibit.nodeCode}
+                  </span>
+                  <span className="font-medium">{exhibit.nodeTitle}</span>
+                </div>
+
                 <span
-                  dir="ltr"
-                  style={{ fontFamily: 'var(--font-display)' }}
-                  className={`rounded-md border px-2 py-0.5 text-[11px] font-bold tracking-wider ${
+                  className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-[11px] font-medium backdrop-blur-md ${
                     isGold
-                      ? 'border-[#f8d478]/35 bg-[#f2be4e]/12 text-[#f8d478]'
-                      : 'border-[#84e8ff]/35 bg-[#48d6fc]/12 text-[#84e8ff]'
+                      ? 'border-[#f8d478]/45 bg-[#f2be4e]/14 text-[#fff1c7]'
+                      : 'border-[#84e8ff]/45 bg-[#48d6fc]/14 text-[#dcf8ff]'
                   }`}
                 >
-                  {exhibit.nodeCode}
+                  <span
+                    className={`h-1.5 w-1.5 animate-pulse rounded-full ${
+                      isGold ? 'bg-[#f8d478]' : 'bg-[#84e8ff]'
+                    }`}
+                  />
+                  <span>{exhibit.status}</span>
                 </span>
-                <span className="font-medium">{exhibit.nodeTitle}</span>
               </div>
 
-              <span
-                className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-0.5 text-[11px] font-medium backdrop-blur-md ${
-                  isGold
-                    ? 'border-[#f8d478]/45 bg-[#f2be4e]/14 text-[#fff1c7]'
-                    : 'border-[#84e8ff]/45 bg-[#48d6fc]/14 text-[#dcf8ff]'
+              {/* Crisp Display Title */}
+              <h2
+                className={`mt-3.5 bg-gradient-to-l from-white via-[#f5f8ff] to-[#dce6f7] bg-clip-text font-bold tracking-tight text-transparent ${
+                  compact ? 'text-base sm:text-lg' : 'text-2xl sm:text-[28px]'
                 }`}
               >
-                <span
-                  className={`h-1.5 w-1.5 animate-pulse rounded-full ${
-                    isGold ? 'bg-[#f8d478]' : 'bg-[#84e8ff]'
-                  }`}
-                />
-                <span>{exhibit.status}</span>
-              </span>
+                {exhibit.title}
+              </h2>
+
+              {/* Synaptic Accent Hairline */}
+              <div
+                aria-hidden="true"
+                className={`mt-2 h-px w-24 bg-gradient-to-l to-transparent ${
+                  isGold ? 'from-[#f8d478]/75' : 'from-[#84e8ff]/75'
+                }`}
+              />
+
+              {/* Concise <=18 words summary */}
+              <p
+                className={`mt-2.5 leading-relaxed text-[#e9eef7]/94 ${
+                  compact ? 'text-xs' : 'text-sm sm:text-[15px]'
+                }`}
+              >
+                {exhibit.summary}
+              </p>
             </div>
 
-            {/* Crisp Display Title */}
-            <h2
-              className={`mt-3.5 bg-gradient-to-l from-white via-[#f5f8ff] to-[#dce6f7] bg-clip-text font-bold tracking-tight text-transparent ${
-                compact ? 'text-base sm:text-lg' : 'text-2xl sm:text-[28px]'
-              }`}
-            >
-              {exhibit.title}
-            </h2>
+            {/* Bottom row: 3 tech tags + interactive action */}
+            <div className="relative flex flex-wrap items-center justify-between gap-3 border-t border-white/12 pt-3.5">
+              <div className="flex flex-wrap items-center gap-1.5" dir="ltr">
+                {exhibit.techTags.map((tag) => (
+                  <span
+                    key={tag}
+                    style={{ fontFamily: 'var(--font-display)' }}
+                    className="rounded-lg border border-white/14 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-[#d7e0f2]"
+                  >
+                    {tag}
+                  </span>
+                ))}
+              </div>
 
-            {/* Synaptic Accent Hairline */}
-            <div
-              aria-hidden="true"
-              className={`mt-2 h-px w-24 bg-gradient-to-l to-transparent ${
-                isGold ? 'from-[#f8d478]/75' : 'from-[#84e8ff]/75'
-              }`}
-            />
+              <div className="flex items-center gap-2">
+                {!compact && exhibit.actionType === 'bot' && (
+                  <CrystalButton
+                    hue={exhibit.hue}
+                    size="md"
+                    onClick={() => setDemoOpen(true)}
+                  >
+                    <Play className="h-3.5 w-3.5" />
+                    <span>הפעל הדגמה מורחבת</span>
+                  </CrystalButton>
+                )}
 
-            {/* Concise <=18 words summary */}
-            <p
-              className={`mt-2.5 leading-relaxed text-[#e9eef7]/94 ${
-                compact ? 'text-xs' : 'text-sm sm:text-[15px]'
-              }`}
-            >
-              {exhibit.summary}
-            </p>
-          </div>
-
-          {/* Bottom row: 3 tech tags + interactive action */}
-          <div className="relative flex flex-wrap items-center justify-between gap-3 border-t border-white/12 pt-3.5">
-            <div className="flex flex-wrap items-center gap-1.5" dir="ltr">
-              {exhibit.techTags.map((tag) => (
-                <span
-                  key={tag}
-                  style={{ fontFamily: 'var(--font-display)' }}
-                  className="rounded-lg border border-white/14 bg-white/[0.04] px-2.5 py-1 text-[11px] font-medium text-[#d7e0f2]"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
-
-            <div className="flex items-center gap-2">
-              {!compact && exhibit.actionType === 'bot' && (
-                <CrystalButton
-                  hue={exhibit.hue}
-                  size="md"
-                  onClick={() => setDemoOpen(true)}
-                >
-                  <Play className="h-3.5 w-3.5" />
-                  <span>הפעל הדגמה חיה</span>
-                </CrystalButton>
-              )}
-
-              {exhibit.actionType === 'external' && exhibit.url ? (
-                <CrystalLinkButton
-                  href={exhibit.url}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  hue={exhibit.hue}
-                  size={compact ? 'sm' : 'md'}
-                >
-                  <Sparkles className="h-3.5 w-3.5 opacity-85" />
-                  <span>{exhibit.actionLabel}</span>
-                </CrystalLinkButton>
-              ) : (
-                <CrystalButton
-                  hue={compact ? exhibit.hue : 'neutral'}
-                  size={compact ? 'sm' : 'md'}
-                  onClick={() =>
-                    onOpenInBot?.(
-                      exhibit.botPrompt || `ספר לי על ${exhibit.title}`,
-                      exhibit.nodeTitle
-                    )
-                  }
-                >
-                  <Bot className="h-3.5 w-3.5" />
-                  <span>{exhibit.actionLabel}</span>
-                  <ArrowUpRight className="h-3.5 w-3.5 opacity-80" />
-                </CrystalButton>
-              )}
+                {exhibit.actionType === 'external' && exhibit.url ? (
+                  <CrystalLinkButton
+                    href={exhibit.url}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    hue={exhibit.hue}
+                    size={compact ? 'sm' : 'md'}
+                  >
+                    <Sparkles className="h-3.5 w-3.5 opacity-85" />
+                    <span>{exhibit.actionLabel}</span>
+                  </CrystalLinkButton>
+                ) : (
+                  <CrystalButton
+                    hue={compact ? exhibit.hue : 'neutral'}
+                    size={compact ? 'sm' : 'md'}
+                    onClick={() =>
+                      onOpenInBot?.(
+                        exhibit.botPrompt || `ספר לי על ${exhibit.title}`,
+                        exhibit.nodeTitle
+                      )
+                    }
+                  >
+                    <Bot className="h-3.5 w-3.5" />
+                    <span>{exhibit.actionLabel}</span>
+                    <ArrowUpRight className="h-3.5 w-3.5 opacity-80" />
+                  </CrystalButton>
+                )}
+              </div>
             </div>
           </div>
+
+          {/* Live Interactive Visual Stage Column (shown on nodes 01-06) */}
+          {!compact && (
+            <div className="relative lg:col-span-6">
+              <ExhibitLiveStage exhibit={exhibit} />
+            </div>
+          )}
         </div>
       </CrystalCard3D>
 
