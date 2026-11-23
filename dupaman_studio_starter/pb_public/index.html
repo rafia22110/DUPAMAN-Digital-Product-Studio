@@ -104,6 +104,10 @@
           <input class="inquiry-input" id="inq-name" type="text" placeholder="שם מלא / ארגון" required>
           <input class="inquiry-input" id="inq-email" type="email" dir="ltr" placeholder="name@company.com" required>
           <input class="inquiry-input" id="inq-topic" type="text" placeholder="איזה מוצר, סוכן או דמו תרצה לבנות?">
+          <label style="display:flex;align-items:center;gap:8px;font-size:0.76rem;color:var(--text-secondary);cursor:pointer;">
+            <input type="checkbox" id="inq-terms" checked required>
+            <span>אני מאשר/ת את <a href="#terms" onclick="event.preventDefault();openConsentDialog();" style="color:var(--accent-cyan);text-decoration:underline;">תנאי השימוש, העוגיות והפרטיות</a> של הסטודיו.</span>
+          </label>
           <button type="submit" class="btn-primary">אשר ושלח לסטודיו</button>
           <span id="inq-feedback" style="font-size:0.8rem;color:var(--accent-cyan);"></span>
         </form>
@@ -274,6 +278,158 @@
     dialogEl.addEventListener('click', (e) => {
       if (e.target === dialogEl) dialogEl.close();
     });
+
+    // Universal Consent Pill, Terms Form & Design Token Adapter
+    const CONSENT_KEY = 'dupaman_starter_consent_v1';
+    const consentPillEl = document.getElementById('universal-consent-pill');
+    const consentBadgeEl = document.getElementById('universal-consent-badge');
+    const consentDialogEl = document.getElementById('consent-dialog');
+
+    function syncConsentUI() {
+      const saved = localStorage.getItem(CONSENT_KEY);
+      if (saved) {
+        consentPillEl.hidden = true;
+        consentBadgeEl.hidden = false;
+        try {
+          const parsed = JSON.parse(saved);
+          if (parsed.gold && parsed.cyan) {
+            document.documentElement.style.setProperty('--accent-gold', parsed.gold);
+            document.documentElement.style.setProperty('--accent-cyan', parsed.cyan);
+          }
+        } catch (e) {}
+      } else {
+        consentPillEl.hidden = false;
+        consentBadgeEl.hidden = true;
+      }
+    }
+
+    function acceptUniversalConsent(mode) {
+      const existing = JSON.parse(localStorage.getItem(CONSENT_KEY) || '{}');
+      const payload = {
+        ...existing,
+        mode: mode || 'all',
+        essential: true,
+        aiMemory: mode !== 'essential',
+        a2a: mode !== 'essential',
+        termsAccepted: true,
+        stamp: 'DUP-CNS-' + Math.random().toString(36).slice(2, 8).toUpperCase(),
+        updatedAt: new Date().toISOString()
+      };
+      localStorage.setItem(CONSENT_KEY, JSON.stringify(payload));
+      if (consentDialogEl.open) consentDialogEl.close();
+      syncConsentUI();
+    }
+
+    function openConsentDialog() {
+      consentDialogEl.showModal();
+    }
+
+    function applyUniversalAdapterTheme(goldHex, cyanHex, btnEl) {
+      document.documentElement.style.setProperty('--accent-gold', goldHex);
+      document.documentElement.style.setProperty('--accent-cyan', cyanHex);
+      document.querySelectorAll('.adapter-preset-btn').forEach(b => b.classList.remove('active'));
+      if (btnEl) btnEl.classList.add('active');
+      const existing = JSON.parse(localStorage.getItem(CONSENT_KEY) || '{}');
+      localStorage.setItem(CONSENT_KEY, JSON.stringify({ ...existing, gold: goldHex, cyan: cyanHex, essential: true }));
+    }
+
+    consentDialogEl.addEventListener('click', (e) => {
+      if (e.target === consentDialogEl) consentDialogEl.close();
+    });
+    syncConsentUI();
   </script>
+
+  <!-- Floating Glass Consent Pill (Zero-Scroll, Non-Blocking) -->
+  <aside id="universal-consent-pill" class="consent-pill" aria-label="הסכמת עוגיות ותנאי שימוש">
+    <div style="flex:1;min-width:240px;">
+      <div style="font-family:var(--font-tech);font-size:0.68rem;letter-spacing:0.18em;color:var(--accent-gold);margin-bottom:3px;" dir="ltr">
+        DUPAMAN UNIVERSAL CONSENT · COOKIES, TERMS &amp; ADAPTERS
+      </div>
+      <div style="font-size:0.82rem;color:var(--text-secondary);line-height:1.45;">
+        הסטודיו פועל כמרחב סוכן חכם (Zero-Scroll) ומשתמש בעוגיות ליבה וזיכרון שיחה מקומי.
+        <a href="#terms" onclick="event.preventDefault();openConsentDialog();" style="color:var(--accent-cyan);text-decoration:underline;">טופס תנאי שימוש ומתאמים אוניברסליים</a>
+      </div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;">
+      <button type="button" class="btn-ghost" onclick="openConsentDialog()">התאמה ותנאים</button>
+      <button type="button" class="btn-ghost" onclick="acceptUniversalConsent('essential')">הכרחיות בלבד</button>
+      <button type="button" class="btn-primary" onclick="acceptUniversalConsent('all')">אישור והמשך</button>
+    </div>
+  </aside>
+
+  <!-- Persistent Micro Glass Badge (Bottom-Left) -->
+  <button type="button" id="universal-consent-badge" class="consent-micro-badge" hidden onclick="openConsentDialog()">
+    <span class="status-dot" style="width:6px;height:6px;"></span>
+    <span>עוגיות, תנאים ומתאם אוניברסלי</span>
+  </button>
+
+  <!-- Native HTML5 <dialog> for Universal Cookies, Terms Form & Brand Adapters -->
+  <dialog id="consent-dialog" class="consent-dialog">
+    <div style="display:flex;justify-content:space-between;align-items:center;border-bottom:1px solid var(--border-glass);padding-bottom:12px;margin-bottom:14px;">
+      <div>
+        <div style="font-family:var(--font-tech);font-size:0.7rem;letter-spacing:0.18em;color:var(--accent-gold);" dir="ltr">UNIVERSAL CONSENT &amp; DESIGN ADAPTER</div>
+        <h3 style="font-size:1.15rem;margin-top:3px;">עוגיות, טופס תנאי שימוש ומתאמים אוניברסליים</h3>
+      </div>
+      <button type="button" class="btn-close-spot" onclick="document.getElementById('consent-dialog').close()" aria-label="סגור">✕</button>
+    </div>
+
+    <form onsubmit="event.preventDefault();acceptUniversalConsent('custom');">
+      <div class="consent-row">
+        <div>
+          <strong style="font-size:0.86rem;">1. עוגיות ליבה ואבטחת סשן (Essential Core)</strong>
+          <div style="font-size:0.75rem;color:var(--text-secondary);">שמירת חותמת ההסכמה, אבטחת פניות וניווט Zero-Scroll.</div>
+        </div>
+        <span style="font-size:0.74rem;color:var(--accent-cyan);">פעיל תמיד</span>
+      </div>
+
+      <label class="consent-row" style="cursor:pointer;">
+        <div>
+          <strong style="font-size:0.86rem;">2. זיכרון המארח החי וזרקור (Spotlight AI Memory)</strong>
+          <div style="font-size:0.75rem;color:var(--text-secondary);">שמירת הקשר השיחה המקומי בצומת 00 להארת יצירות מהירה.</div>
+        </div>
+        <input type="checkbox" id="chk-ai-memory" checked>
+      </label>
+
+      <label class="consent-row" style="cursor:pointer;">
+        <div>
+          <strong style="font-size:0.86rem;">3. גשר סוכנים אוניברסלי (A2A / A2UI 1.0 Runtime)</strong>
+          <div style="font-size:0.75rem;color:var(--text-secondary);">חיבור תקני של משטחי A2UI ומניפסט הסוכן לסוכני AI מורשים.</div>
+        </div>
+        <input type="checkbox" id="chk-a2a" checked>
+      </label>
+
+      <div style="margin:14px 0 6px;font-size:0.82rem;font-weight:700;color:var(--accent-gold);">
+        מתאמי עיצוב אוניברסליים (התאמת אסימוני הזכוכית לכל מותג/לקוח בלחיצה):
+      </div>
+      <div class="adapter-presets">
+        <button type="button" class="adapter-preset-btn active" onclick="applyUniversalAdapterTheme('#F5C563','#38BDF8',this)">
+          <strong dir="ltr" style="font-family:var(--font-tech);font-size:0.76rem;">DUPAMAN Obsidian</strong>
+          <div style="font-size:0.72rem;color:var(--text-secondary);">זהב מלכותי וציאן קריסטלי</div>
+        </button>
+        <button type="button" class="adapter-preset-btn" onclick="applyUniversalAdapterTheme('#34D399','#38BDF8',this)">
+          <strong dir="ltr" style="font-family:var(--font-tech);font-size:0.76rem;">EdTech Emerald</strong>
+          <div style="font-size:0.72rem;color:var(--text-secondary);">איזמרגד חינוכי ו-3D</div>
+        </button>
+        <button type="button" class="adapter-preset-btn" onclick="applyUniversalAdapterTheme('#E2E8F0','#60A5FA',this)">
+          <strong dir="ltr" style="font-family:var(--font-tech);font-size:0.76rem;">FinTech Sapphire</strong>
+          <div style="font-size:0.72rem;color:var(--text-secondary);">ספיר בנקאי ופלטינה</div>
+        </button>
+      </div>
+
+      <div style="padding:10px 12px;border-radius:12px;background:rgba(15,23,42,0.5);border:1px solid var(--border-glass);font-size:0.75rem;color:var(--text-secondary);line-height:1.5;margin-bottom:12px;">
+        <strong>תנאי שימוש ורישוי:</strong> קוד המקור מופץ תחת רישיון MIT; תכנים תחת CC BY-NC-SA 4.0; סימני המותג DUPAMAN ומיזמי הדגל שמורים לרפאל ארגנטי. פרטים הנמסרים בטופס הסטודיו משמשים אך ורק לתיאום הדגמה, אב-טיפוס או גישת משקיעים לחדר המיזמים (06).
+      </div>
+
+      <label style="display:flex;align-items:center;gap:8px;font-size:0.8rem;margin-bottom:14px;cursor:pointer;">
+        <input type="checkbox" required checked>
+        <span>אני מאשר/ת את תנאי השימוש, מדיניות הפרטיות, העוגיות והסודיות של DUPAMAN Studio.</span>
+      </label>
+
+      <div style="display:flex;justify-content:flex-end;gap:10px;">
+        <button type="button" class="btn-ghost" onclick="acceptUniversalConsent('essential')">הכרחיות בלבד</button>
+        <button type="submit" class="btn-primary">שמור תנאים והתאמות</button>
+      </div>
+    </form>
+  </dialog>
 </body>
 </html>

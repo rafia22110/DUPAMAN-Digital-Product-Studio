@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { Info, LogIn, Mail } from 'lucide-react';
+import { Info, LogIn, Mail, ShieldCheck } from 'lucide-react';
 import { loadProcessedOverlayImage } from './PureNeuralFlythrough';
 import { CrystalButton } from './GlassPrimitives';
+import { openUniversalConsentModal } from './UniversalConsentAdapter';
 
 export type LogoDestination = 'about' | 'contact' | 'login';
 
@@ -114,6 +115,18 @@ export function FloatingLogoTrigger({
                 </CrystalButton>
               );
             })}
+            <CrystalButton
+              hue="gold"
+              size="sm"
+              onClick={() => {
+                setOpen(false);
+                openUniversalConsentModal('terms');
+              }}
+              className="w-full justify-start"
+            >
+              <ShieldCheck className="h-3.5 w-3.5 opacity-85" />
+              <span>תנאים ועוגיות</span>
+            </CrystalButton>
           </div>
         )}
       </div>
@@ -172,6 +185,18 @@ export function FloatingLogoTrigger({
               </CrystalButton>
             );
           })}
+          <CrystalButton
+            hue="gold"
+            size="sm"
+            onClick={() => {
+              setOpen(false);
+              openUniversalConsentModal('terms');
+            }}
+            className="w-full justify-start"
+          >
+            <ShieldCheck className="h-3.5 w-3.5 opacity-85" />
+            <span>תנאים ועוגיות</span>
+          </CrystalButton>
         </div>
       )}
     </div>

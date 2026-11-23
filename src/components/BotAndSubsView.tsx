@@ -20,6 +20,7 @@ import { CrystalButton, CrystalCard3D } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { StudioExhibitCard } from './StudioExhibitCard';
 import { SubtleBrainBackdrop } from './SubtleBrainBackdrop';
+import { openUniversalConsentModal } from './UniversalConsentAdapter';
 
 type BotRuntimeState = 'idle' | 'waking' | 'listening' | 'spotlight' | 'collapsed';
 
@@ -80,6 +81,7 @@ export function BotAndSubsView({
       : ['ממשקי מחר']
   );
   const [saving, setSaving] = useState(false);
+  const [acceptedTerms, setAcceptedTerms] = useState(true);
   const [feedback, setFeedback] = useState<string | null>(null);
 
   const feedRef = useRef<HTMLDivElement | null>(null);
@@ -238,6 +240,10 @@ export function BotAndSubsView({
     const cleanName = name.trim() || 'אורח סטודיו';
     if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
       setFeedback('נא להזין כתובת אימייל תקינה.');
+      return;
+    }
+    if (!acceptedTerms) {
+      setFeedback('נא לאשר את תנאי השימוש ומדיניות הפרטיות של הסטודיו.');
       return;
     }
 
@@ -572,6 +578,25 @@ export function BotAndSubsView({
                   </div>
 
                   <div className="flex flex-col gap-2">
+                    <label className="flex cursor-pointer items-center gap-2 rounded-xl border border-white/12 bg-white/[0.03] px-2.5 py-1.5 text-[11px] text-[#cfd7e6]">
+                      <input
+                        type="checkbox"
+                        checked={acceptedTerms}
+                        onChange={(e) => setAcceptedTerms(e.target.checked)}
+                        className="h-3.5 w-3.5 accent-[#84e8ff]"
+                      />
+                      <span>
+                        אני מאשר/ת את{' '}
+                        <button
+                          type="button"
+                          onClick={() => openUniversalConsentModal('terms')}
+                          className="cursor-pointer font-semibold text-[#84e8ff] underline hover:text-white"
+                        >
+                          תנאי השימוש, העוגיות והפרטיות
+                        </button>{' '}
+                        של DUPAMAN.
+                      </span>
+                    </label>
                     {feedback && (
                       <div className="flex items-center gap-1.5 rounded-xl border border-[#84e8ff]/35 bg-[#48d6fc]/12 px-3 py-2 text-xs text-[#e8fbff]">
                         <CheckCircle2 className="h-3.5 w-3.5 shrink-0 text-[#84e8ff]" />

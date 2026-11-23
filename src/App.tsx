@@ -6,6 +6,7 @@ import { FloatingLogoTrigger, type LogoDestination } from './components/Floating
 import { DomainIndexView } from './components/DomainIndexView';
 import { BotAndSubsView } from './components/BotAndSubsView';
 import { LogoModalViews } from './components/LogoModalViews';
+import { UniversalConsentAdapter } from './components/UniversalConsentAdapter';
 
 type ActiveRoute =
   | { kind: 'home' }
@@ -54,6 +55,7 @@ export default function App() {
             onOpenBot={openBot}
             onOpenLogoSection={openLogoSection}
           />
+          <UniversalConsentAdapter />
         </div>
       );
     }
@@ -73,6 +75,7 @@ export default function App() {
           onOpenDomain={openDomain}
           onOpenLogoSection={openLogoSection}
         />
+        <UniversalConsentAdapter />
       </div>
     );
   }
@@ -90,6 +93,7 @@ export default function App() {
           onGoHome={goHome}
           onOpenBot={(p) => openBot(p)}
         />
+        <UniversalConsentAdapter />
       </div>
     );
   }
@@ -106,6 +110,9 @@ export default function App() {
 
       {/* Completely invisible click zone on the top-right DUPAMAN logo (opens About / Contact / Login) */}
       <FloatingLogoTrigger mode="home-canvas" onNavigate={openLogoSection} />
+
+      {/* Universal Glass Consent Pill, Terms Form & Design Adapter */}
+      <UniversalConsentAdapter />
     </div>
   );
 }
