@@ -1,0 +1,25 @@
+/* ==========================================================================
+   DUPAMAN STUDIO — DESIGN TOKENS (Swap this file to clone for any brand!)
+   ========================================================================== */
+:root {
+  --bg-obsidian: #03060E;
+  --bg-surface: rgba(11, 17, 32, 0.78);
+  --bg-glass: rgba(15, 23, 42, 0.58);
+  --border-glass: rgba(255, 255, 255, 0.11);
+  --border-glow: rgba(245, 197, 99, 0.45);
+
+  --accent-gold: #F5C563;
+  --accent-cyan: #38BDF8;
+  --accent-violet: #A78BFA;
+
+  --text-primary: #F8FAFC;
+  --text-secondary: #94A3B8;
+  --text-muted: #64748B;
+
+  --font-he: 'Heebo', 'Assistant', system-ui, -apple-system, sans-serif;
+  --font-tech: 'Space Grotesk', monospace;
+
+  --radius-lg: 22px;
+  --radius-pill: 999px;
+  --shadow-spotlight: 0 28px 90px rgba(0, 0, 0, 0.78), 0 0 40px rgba(56, 189, 248, 0.14);
+}

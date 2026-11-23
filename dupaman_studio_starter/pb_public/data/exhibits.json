@@ -1,0 +1,130 @@
+{
+  "studio": {
+    "name": "DUPAMAN Studio",
+    "founder": "רפאל ארגנטי",
+    "tagline": "מעצבים אפליקציות סוכן ומוצרים דיגיטליים — חיבור בין עומק אנושי, חינוך ובינה מלאכותית.",
+    "pillars": [
+      "ממשקי מחר (כל אתר = סוכן)",
+      "למידה חיה ו-3D",
+      "מערכות AI ואדריכלות הקשב"
+    ],
+    "welcome_message": "ברוך הבא ל-DUPAMAN. כאן לא גוללים בתפריטים — אומרים מה מחפשים, ואני מאיר את היצירה המדויקת. מתעניין בפיתוח מוצר, למידה חיה, או בחדר המיזמים?",
+    "google_cloud_project": "gen-lang-client-0569299984"
+  },
+  "nodes": [
+    {
+      "id": "01",
+      "name": "ממשקי מחר",
+      "en": "AGENTIC INTERFACES",
+      "pos": "top-left",
+      "exhibit": {
+        "id": "EXH-01",
+        "status": "קונספט 2027",
+        "title": "סוכן בנקאות ופיננסים יוקרתי",
+        "summary": "החלפת אתר בנק עמוס קוביות בחלון ספוט זכוכיתי וסוכן המזהה לקוח מול מתעניין ושולף פעולות בזמן אמת.",
+        "stack": [
+          "HTMX v4",
+          "hx-live",
+          "A2A Runtime"
+        ],
+        "demoUrl": "https://dupaman.vercel.app/",
+        "cta": "הפעל הדגמת סוכן"
+      }
+    },
+    {
+      "id": "02",
+      "name": "מוח מכונה",
+      "en": "AI SYSTEMS",
+      "pos": "mid-left",
+      "exhibit": {
+        "id": "EXH-02",
+        "status": "מוצר חי",
+        "title": "Alveare AI",
+        "summary": "פלטפורמת בינה מלאכותית חיה לאוטומציה, שירותי AI וייצור תוצרים עסקיים בקנה מידה.",
+        "stack": [
+          "Multi-Agent",
+          "PocketBase",
+          "Google Cloud AI"
+        ],
+        "demoUrl": "http://alveare-ai.com",
+        "cta": "פתח מוצר חי ↗"
+      }
+    },
+    {
+      "id": "03",
+      "name": "למידה חיה",
+      "en": "LIVING EDTECH 3D",
+      "pos": "bot-left",
+      "exhibit": {
+        "id": "EXH-03",
+        "status": "אב-טיפוס פעיל",
+        "title": "Meet3D / Zume Class",
+        "summary": "הרחבת Three.js שהופכת כל שיעור Google Meet לכיתת תלת-ממד חיה עם אווטארים, לוחות משותפים ומשחוק.",
+        "stack": [
+          "Three.js",
+          "Google Meet API",
+          "EdTech"
+        ],
+        "demoUrl": "https://tusba-65636555-d7738.web.app/",
+        "cta": "צפה בדמו למידה ↗"
+      }
+    },
+    {
+      "id": "04",
+      "name": "אדריכלות הקשב",
+      "en": "NEURO & FOCUS",
+      "pos": "top-right",
+      "exhibit": {
+        "id": "EXH-04",
+        "status": "מאגר מחקר חי",
+        "title": "הספקטרום האנושי: מוחות הקצה",
+        "summary": "מודלים, פרוטוקולי דופמין וכלים קוגניטיביים שהופכים ADHD ואוטיזם ליתרון יצירתי ומערכתי.",
+        "stack": [
+          "Neuroscience",
+          "NotebookLM",
+          "Behavioral UI"
+        ],
+        "demoUrl": "https://notebooklm.google.com/notebook/ea8f6bd3-9b3e-4001-988a-39b51777a13e",
+        "cta": "חקור מאגר ידע ↗"
+      }
+    },
+    {
+      "id": "05",
+      "name": "רוח ומקור",
+      "en": "HERITAGE & DEPTH",
+      "pos": "mid-right",
+      "exhibit": {
+        "id": "EXH-05",
+        "status": "170 מקורות",
+        "title": "תכנון התודעה ומחזורי הציוויליזציה",
+        "summary": "מנוע מחקר עומק המחבר בין תודעה, פילוסופיית הרמב\"ם וליבוביץ', היסטוריה ומחזורי תרבות.",
+        "stack": [
+          "Knowledge Engine",
+          "NotebookLM",
+          "Semantic RAG"
+        ],
+        "demoUrl": "https://notebooklm.google.com/notebook/021d819f-85d5-4d37-9078-bc865077ab9c",
+        "cta": "פתח מנוע עומק ↗"
+      }
+    },
+    {
+      "id": "06",
+      "name": "חדר המיזמים",
+      "en": "VENTURE VAULT",
+      "pos": "bot-right",
+      "exhibit": {
+        "id": "EXH-06",
+        "status": "פתוח לשותפים",
+        "title": "Bio-Oracle — אבחון חזותי חכם",
+        "summary": "אב-טיפוס ומחקר קליני-רגולטורי לאבחון סמנים ביולוגיים דרך צילום עין ופנים באמצעות ראייה ממוחשבת.",
+        "stack": [
+          "Computer Vision",
+          "HealthTech",
+          "Investor Ready"
+        ],
+        "demoUrl": "https://notebooklm.google.com/notebook/0e5d4e57-7336-4ff9-838f-6fcb1f5b4fd7",
+        "cta": "תיק משקיעים ↗"
+      }
+    }
+  ]
+}

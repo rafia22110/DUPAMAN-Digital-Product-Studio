@@ -4,6 +4,22 @@
   "outputDirectory": "dist",
   "rewrites": [
     {
+      "source": "/api/a2ui/surface/:id",
+      "destination": "/api/a2ui-surface?id=:id"
+    },
+    {
+      "source": "/api/exhibit/:id",
+      "destination": "/api/exhibit?id=:id"
+    },
+    {
+      "source": "/api/agent/message",
+      "destination": "/api/agent-message"
+    },
+    {
+      "source": "/starter",
+      "destination": "/starter/index.html"
+    },
+    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },

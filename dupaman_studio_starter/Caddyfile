@@ -1,0 +1,5 @@
+# Production Auto-HTTPS Reverse Proxy (4-line setup for $4 VPS)
+dupaman.com {
+    encode zstd gzip
+    reverse_proxy 127.0.0.1:8090
+}

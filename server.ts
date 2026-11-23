@@ -6,6 +6,12 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
 import { STUDIO_EXHIBITS } from './src/data/studioSamples.ts';
+import {
+  buildA2UISurfaceMessages,
+  findStarterNode,
+  renderHtmxExhibitFragment,
+  resolveUniversalAgentMessage,
+} from './src/data/starterBridge.ts';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -557,9 +563,46 @@ async function startServer() {
 
     res.json({
       agent: 'DUPAMAN Digital Product Studio',
+      studio: 'DUPAMAN Studio',
+      founder: 'רפאל ארגנטי',
+      googleCloudProject: 'gen-lang-client-0569299984',
       protocol: 'a2a/1.0',
       exhibits,
     });
+  });
+
+  // A2UI 1.0 Surface Descriptor Endpoint (application/a2ui+json)
+  app.get('/api/a2ui/surface/:id', (req: Request, res: Response) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    const node = findStarterNode(String(req.params.id ?? '01'));
+    if (!node) {
+      res.status(404).json({ error: 'Surface node not found', nodeId: req.params.id });
+      return;
+    }
+    res.setHeader('Content-Type', 'application/a2ui+json; charset=utf-8');
+    res.status(200).send(JSON.stringify(buildA2UISurfaceMessages(node)));
+  });
+
+  // HTMX HTML Fragment Endpoint (for lightweight HTMX / hx-live clients)
+  app.get('/api/exhibit/:id', (req: Request, res: Response) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    const node = findStarterNode(String(req.params.id ?? ''));
+    if (!node) {
+      res.status(404).type('html').send('<div class="exhibit-card">הצומת לא נמצא.</div>');
+      return;
+    }
+    res.status(200).type('html').send(renderHtmxExhibitFragment(node));
+  });
+
+  // Universal Agent Endpoint — Google Cloud Agent Platform (gen-lang-client-0569299984) + A2UI 1.0 Stream + Local Fallback
+  app.post('/api/agent/message', async (req: Request, res: Response) => {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    const body = (req.body ?? {}) as { message?: string; mode?: string };
+    const payload = await resolveUniversalAgentMessage(
+      String(body.message ?? ''),
+      String(body.mode ?? 'human')
+    );
+    res.status(200).json(payload);
   });
 
   app.post('/api/a2a', async (req: Request, res: Response) => {

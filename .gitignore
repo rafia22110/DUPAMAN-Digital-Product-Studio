@@ -7,3 +7,7 @@ coverage/
 .env*
 !.env.example
 .antigravity/
+pb_data/
+dupaman_studio_starter/pb_data/
+dupaman_studio_starter/pocketbase
+dupaman_studio_starter/pocketbase.exe

@@ -37,6 +37,9 @@ export default async function handler(req: VercelReq, res: VercelRes) {
 
     res.status(200).json({
       agent: 'DUPAMAN Digital Product Studio',
+      studio: 'DUPAMAN Studio',
+      founder: 'רפאל ארגנטי',
+      googleCloudProject: 'gen-lang-client-0569299984',
       protocol: 'a2a/1.0',
       exhibits,
     });
