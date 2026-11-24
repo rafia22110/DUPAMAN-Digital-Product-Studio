@@ -1,3 +1,5 @@
+export type ExhibitMediaType = 'video' | 'presentation' | 'pdf' | 'live-app';
+
 export interface StudioExhibitSample {
   id: string;
   code?: string;
@@ -5,6 +7,8 @@ export interface StudioExhibitSample {
   nodeTitle: string;
   domainId: string;
   sectionLabel: string;
+  mediaType: ExhibitMediaType;
+  mediaBadge: string;
   status: string;
   readiness: string;
   readinessPct: number;
@@ -35,6 +39,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'ממשקי מחר',
     domainId: 'brain-top-left',
     sectionLabel: 'מדור ממשקי סוכן (Agentic UI)',
+    mediaType: 'live-app',
+    mediaBadge: 'דמו חי',
     status: 'קונספט 2027',
     readiness: '80% מוכן להפעלה',
     readinessPct: 80,
@@ -66,6 +72,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'מוח מכונה',
     domainId: 'brain-mid-left',
     sectionLabel: 'מדור אבטחת סוכנים ובקרה',
+    mediaType: 'presentation',
+    mediaBadge: 'מצגת',
     status: 'אב-טיפוס פעיל',
     readiness: '75% מוכן להפעלה',
     readinessPct: 75,
@@ -97,6 +105,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'מוח מכונה',
     domainId: 'brain-mid-left',
     sectionLabel: 'מדור פלטפורמות AI ואוטומציה',
+    mediaType: 'live-app',
+    mediaBadge: 'מוצר חי',
     status: 'מוצר חי',
     readiness: '90% מוכן להפעלה',
     readinessPct: 90,
@@ -125,6 +135,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'למידה חיה',
     domainId: 'brain-bottom-left',
     sectionLabel: 'מדור כיתה תלת-ממדית (3D)',
+    mediaType: 'pdf',
+    mediaBadge: 'PDF / חבילת מוצר',
     status: '85% מוכן להפעלה',
     readiness: '85% מוכן להפעלה',
     readinessPct: 85,
@@ -158,6 +170,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'למידה חיה',
     domainId: 'brain-bottom-left',
     sectionLabel: 'מדור מצגות ופעילויות לכיתה',
+    mediaType: 'presentation',
+    mediaBadge: 'מצגת',
     status: '95% מוכן להפעלה',
     readiness: '95% מוכן להפעלה',
     readinessPct: 95,
@@ -191,6 +205,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'למידה חיה',
     domainId: 'brain-bottom-left',
     sectionLabel: 'מדור חינוך ואזרחות פעילה',
+    mediaType: 'live-app',
+    mediaBadge: 'PDF / אתר חי',
     status: '100% מוכן להפעלה',
     readiness: '100% מוכן להפעלה',
     readinessPct: 100,
@@ -225,6 +241,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'אדריכלות הקשב',
     domainId: 'brain-top-right',
     sectionLabel: 'מדור מחקר קוגניטיבי וקשב',
+    mediaType: 'pdf',
+    mediaBadge: 'PDF / מחקר',
     status: 'מחקר וכלים',
     readiness: '85% מוכן להפעלה',
     readinessPct: 85,
@@ -256,6 +274,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'רוח ומקור',
     domainId: 'brain-mid-right',
     sectionLabel: 'מדור מחקר עומק ומורשת',
+    mediaType: 'pdf',
+    mediaBadge: 'PDF / 170 מקורות',
     status: '170 מקורות',
     readiness: '90% מוכן להפעלה',
     readinessPct: 90,
@@ -287,6 +307,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'חדר המיזמים',
     domainId: 'brain-bottom-right',
     sectionLabel: 'מדור מיזמים לשותפים ומשקיעים',
+    mediaType: 'video',
+    mediaBadge: 'וידאו',
     status: 'מיזם להאצה',
     readiness: '70% מוכן להפעלה',
     readinessPct: 70,
@@ -317,6 +339,8 @@ export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
     nodeTitle: 'חדר המיזמים',
     domainId: 'brain-bottom-right',
     sectionLabel: 'מדור תיק רגולציה ומחקר',
+    mediaType: 'pdf',
+    mediaBadge: 'PDF / רגולציה',
     status: 'תיק מחקר',
     readiness: '75% מוכן להפעלה',
     readinessPct: 75,

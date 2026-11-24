@@ -7,8 +7,12 @@ import {
   Download,
   ExternalLink,
   Eye,
+  FileText,
+  Film,
   Github,
+  Pause,
   Play,
+  Presentation,
   Printer,
   Share2,
   ShieldCheck,
@@ -759,6 +763,258 @@ export function StudioExhibitCard({
           exhibit={exhibit}
           onClose={() => setDemoOpen(false)}
           onOpenInBot={onOpenInBot}
+        />
+      )}
+    </>
+  );
+}
+
+/**
+ * Compact Gallery Card modeled directly on Rafael's Google Doc wireframe sketch:
+ * - Rounded media preview tile ("וידאו" with ▶ / ⏸ controls, "מצגת", or "PDF")
+ * - High-contrast dark summary bar
+ * - 4 crisp rounded pill buttons along the bottom (פתיחה / הדפסה / הורדה / שיתוף + GitHub)
+ * Clicking the card body opens the full-content reader modal cleanly.
+ */
+export function ExhibitGalleryCard({
+  exhibit,
+  onSelectFocus,
+  onOpenInBot,
+}: {
+  exhibit: StudioExhibitSample;
+  onSelectFocus?: () => void;
+  onOpenInBot?: (prompt: string, topic: string) => void;
+}) {
+  const [readerOpen, setReaderOpen] = useState(false);
+  const [shared, setShared] = useState(false);
+  const [playingPreview, setPlayingPreview] = useState(false);
+  const isGold = exhibit.hue === 'gold';
+  const primaryUrl = exhibit.liveUrl || exhibit.url;
+  const primaryLabel = exhibit.liveLabel || exhibit.actionLabel.replace(/\s*↗$/, '');
+
+  const handleShare = async () => {
+    const shareUrl = primaryUrl || 'https://dupaman.vercel.app/';
+    const shareText = `${exhibit.title} — ${exhibit.summary}\n${shareUrl}`;
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: exhibit.title, text: exhibit.summary, url: shareUrl });
+      } else if (navigator.clipboard) {
+        await navigator.clipboard.writeText(shareText);
+      }
+      setShared(true);
+      setTimeout(() => setShared(false), 2200);
+    } catch {
+      // cancelled
+    }
+  };
+
+  const MediaIcon =
+    exhibit.mediaType === 'video'
+      ? Film
+      : exhibit.mediaType === 'presentation'
+        ? Presentation
+        : FileText;
+
+  return (
+    <>
+      <CrystalCard3D hue={exhibit.hue} className="h-full w-full">
+        <div
+          dir="rtl"
+          className="flex h-full flex-col justify-between gap-3 p-4"
+        >
+          {/* Top Row: Media Preview Tile (matching sketch: וידאו / מצגת / PDF) + Readiness Badge */}
+          <div className="flex items-start justify-between gap-2.5">
+            <button
+              type="button"
+              onClick={() => setReaderOpen(true)}
+              className={`group flex cursor-pointer flex-col items-start justify-between rounded-2xl border px-3.5 py-2.5 text-right transition-all ${
+                exhibit.mediaType === 'video' ? 'min-h-[82px] min-w-[116px]' : 'min-h-[64px] min-w-[112px]'
+              } ${
+                isGold
+                  ? 'border-[#f8d478]/40 bg-gradient-to-br from-[#2a200c]/85 to-[#0b0e18]/90 hover:border-[#f8d478]/75'
+                  : 'border-[#84e8ff]/40 bg-gradient-to-br from-[#0e2236]/85 to-[#090d18]/90 hover:border-[#84e8ff]/75'
+              }`}
+            >
+              <div className="flex w-full items-center justify-between gap-2">
+                <MediaIcon
+                  className={`h-4 w-4 ${isGold ? 'text-[#f8d478]' : 'text-[#84e8ff]'}`}
+                />
+                {exhibit.code && (
+                  <span
+                    dir="ltr"
+                    style={{ fontFamily: 'var(--font-display)' }}
+                    className="text-[10px] font-bold text-white/75"
+                  >
+                    {exhibit.code}
+                  </span>
+                )}
+              </div>
+              <span className="mt-1.5 text-xs font-extrabold text-white">
+                {exhibit.mediaBadge}
+              </span>
+              {exhibit.mediaType === 'video' && (
+                <div className="mt-1.5 flex items-center gap-1.5">
+                  <span
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setPlayingPreview((p) => !p);
+                    }}
+                    className="inline-flex items-center gap-1 rounded-md border border-white/20 bg-white/10 px-1.5 py-0.5 text-[10px] text-white"
+                  >
+                    {playingPreview ? (
+                      <>
+                        <Pause className="h-2.5 w-2.5" />
+                        <span>השהה</span>
+                      </>
+                    ) : (
+                      <>
+                        <Play className="h-2.5 w-2.5" />
+                        <span>נגן</span>
+                      </>
+                    )}
+                  </span>
+                </div>
+              )}
+            </button>
+
+            <div className="flex flex-1 flex-col items-end gap-1.5 text-left">
+              <span
+                className={`inline-flex items-center gap-1 rounded-full border px-2.5 py-0.5 text-[10px] font-bold ${
+                  exhibit.readinessPct >= 95
+                    ? 'border-emerald-400/50 bg-emerald-500/18 text-emerald-200'
+                    : isGold
+                      ? 'border-[#f8d478]/45 bg-[#f2be4e]/15 text-[#fff1c7]'
+                      : 'border-[#84e8ff]/45 bg-[#48d6fc]/15 text-[#dcf8ff]'
+                }`}
+              >
+                <span className="h-1.5 w-1.5 rounded-full bg-current" />
+                <span>{exhibit.readiness}</span>
+              </span>
+              <span className="text-[10px] font-medium text-[#b9c5db]">
+                {exhibit.sectionLabel}
+              </span>
+              {onSelectFocus && (
+                <button
+                  type="button"
+                  onClick={onSelectFocus}
+                  className="cursor-pointer text-[10px] font-semibold text-[#84e8ff] underline-offset-2 hover:underline"
+                >
+                  תצוגה מורחבת ↗
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Middle High-Contrast Dark Summary Panel (clickable to open full content) */}
+          <button
+            type="button"
+            onClick={() => setReaderOpen(true)}
+            className="group flex flex-1 cursor-pointer flex-col justify-between rounded-2xl border border-white/12 bg-[#090d16]/85 p-3.5 text-right transition-colors hover:border-white/28 hover:bg-[#0d1422]/90"
+          >
+            <div>
+              <h3 className="text-sm font-bold text-white transition-colors group-hover:text-[#f8d478] sm:text-base">
+                {exhibit.title}
+              </h3>
+              <p className="mt-1 line-clamp-3 text-xs leading-relaxed text-[#dce5f5]">
+                {exhibit.summary}
+              </p>
+            </div>
+            <div className="mt-2 flex items-center justify-between text-[10px] text-[#9eb0cc]">
+              <span>לחץ לקריאת התוכן המלא</span>
+              <Eye className="h-3 w-3 opacity-80" />
+            </div>
+          </button>
+
+          {/* Bottom 4 Rounded Pill Action Buttons (matching sketch wireframe) */}
+          <div className="grid grid-cols-4 gap-1.5">
+            {primaryUrl ? (
+              <a
+                href={primaryUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                title={primaryLabel}
+                className={`inline-flex items-center justify-center gap-1 rounded-xl border px-2 py-1.5 text-[11px] font-bold transition-colors ${
+                  isGold
+                    ? 'border-[#f8d478]/55 bg-[#f2be4e]/20 text-[#fff3cf] hover:bg-[#f2be4e]/30'
+                    : 'border-[#84e8ff]/55 bg-[#48d6fc]/20 text-[#e8fbff] hover:bg-[#48d6fc]/30'
+                }`}
+              >
+                <ExternalLink className="h-3 w-3 shrink-0" />
+                <span className="truncate">פתיחה</span>
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() => setReaderOpen(true)}
+                className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-xl border border-white/18 bg-white/[0.06] px-2 py-1.5 text-[11px] font-bold text-white hover:bg-white/15"
+              >
+                <Eye className="h-3 w-3 shrink-0" />
+                <span>צפייה</span>
+              </button>
+            )}
+
+            <button
+              type="button"
+              onClick={() => triggerPrintExhibit(exhibit)}
+              title="הדפסת דף פעילות"
+              className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/[0.05] px-2 py-1.5 text-[11px] font-medium text-[#edf2fc] transition-colors hover:bg-white/15"
+            >
+              <Printer className="h-3 w-3 shrink-0 text-[#f8d478]" />
+              <span>הדפסה</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => triggerDownloadExhibit(exhibit)}
+              title="הורדת תקציר לפעילות"
+              className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/[0.05] px-2 py-1.5 text-[11px] font-medium text-[#edf2fc] transition-colors hover:bg-white/15"
+            >
+              <Download className="h-3 w-3 shrink-0 text-[#84e8ff]" />
+              <span>הורדה</span>
+            </button>
+
+            {exhibit.githubUrl ? (
+              <a
+                href={exhibit.githubUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                onContextMenu={(e) => {
+                  e.preventDefault();
+                  void handleShare();
+                }}
+                title="GitHub Repository"
+                className="inline-flex items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/[0.05] px-2 py-1.5 text-[11px] font-medium text-[#edf2fc] transition-colors hover:bg-white/15"
+              >
+                <Github className="h-3 w-3 shrink-0" />
+                <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }}>
+                  GitHub
+                </span>
+              </a>
+            ) : (
+              <button
+                type="button"
+                onClick={() => void handleShare()}
+                className="inline-flex cursor-pointer items-center justify-center gap-1 rounded-xl border border-white/15 bg-white/[0.05] px-2 py-1.5 text-[11px] font-medium text-[#edf2fc] transition-colors hover:bg-white/15"
+              >
+                {shared ? (
+                  <Check className="h-3 w-3 shrink-0 text-emerald-300" />
+                ) : (
+                  <Share2 className="h-3 w-3 shrink-0 text-[#84e8ff]" />
+                )}
+                <span>{shared ? 'הועתק' : 'שיתוף'}</span>
+              </button>
+            )}
+          </div>
+        </div>
+      </CrystalCard3D>
+
+      {readerOpen && (
+        <FullExhibitReaderModal
+          exhibit={exhibit}
+          onClose={() => setReaderOpen(false)}
+          onOpenInBot={onOpenInBot}
+          onShare={() => void handleShare()}
+          shared={shared}
         />
       )}
     </>
