@@ -11,7 +11,7 @@ import {
 } from 'lucide-react';
 import { DUPAMAN_DOMAINS } from '../data/dupamanCatalog';
 import {
-  STUDIO_EXHIBITS,
+  PRIMARY_NODE_EXHIBITS,
   findExhibitByCode,
   searchStudioExhibits,
   type StudioExhibitSample,
@@ -440,7 +440,7 @@ export function BotAndSubsView({
                 {/* Direct node jump pills + chat input */}
                 <div className="mt-2 flex shrink-0 flex-col gap-2">
                   <div className="flex flex-wrap gap-1">
-                    {STUDIO_EXHIBITS.map((ex) => (
+                    {PRIMARY_NODE_EXHIBITS.map((ex) => (
                       <button
                         key={ex.id}
                         type="button"
@@ -458,7 +458,9 @@ export function BotAndSubsView({
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
-                      void sendPrompt(input);
+                      if (input.trim() && !thinking) {
+                        void sendPrompt(input);
+                      }
                     }}
                     className="flex items-center gap-2 rounded-xl border border-white/18 bg-white/[0.04] p-1.5 focus-within:border-[#f8d478]/50"
                   >
@@ -469,7 +471,15 @@ export function BotAndSubsView({
                         lastActivityRef.current = Date.now();
                         setInput(e.target.value);
                       }}
-                      placeholder="אמור מה אתה מחפש — ממשקי מחר, למידה חיה, חדר המיזמים..."
+                      onKeyDown={(e) => {
+                        if (e.key === 'Enter' && !e.shiftKey) {
+                          e.preventDefault();
+                          if (input.trim() && !thinking) {
+                            void sendPrompt(input);
+                          }
+                        }
+                      }}
+                      placeholder="אמור מה אתה מחפש — אייגיס מירור, חנוכה, אזרחים מודאגים, חדר המיזמים..."
                       className="w-full bg-transparent px-2.5 py-1.5 text-xs text-white placeholder-[#93a0b8] outline-none sm:text-sm"
                     />
                     <CrystalButton

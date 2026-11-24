@@ -1,5 +1,17 @@
 import { useEffect, useRef, useState } from 'react';
-import { Activity, Cpu, Eye, Layers, ShieldCheck, Sparkles, Terminal } from 'lucide-react';
+import {
+  Activity,
+  BookOpen,
+  Cpu,
+  Eye,
+  Flame,
+  Layers,
+  Lock,
+  ShieldCheck,
+  Sparkles,
+  Terminal,
+  Vote,
+} from 'lucide-react';
 import type { StudioExhibitSample } from '../data/studioSamples';
 
 interface ExhibitLiveStageProps {
@@ -135,6 +147,191 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
   const [researchLayer, setResearchLayer] = useState(0);
   // Node 06: Bio-Oracle scan layer
   const [scanLayer, setScanLayer] = useState<'ocular' | 'regulatory'>('ocular');
+  // DUP-021: Aegis Mirror policy guard state
+  const [aegisStep, setAegisStep] = useState(0);
+  // DUP-024: Hanukkah interactive classroom slide step
+  const [hanukkahSlide, setHanukkahSlide] = useState(0);
+  // Thumbnail fallback state
+  const [imgFailed, setImgFailed] = useState(false);
+
+  if (exhibit.thumbnail && !imgFailed) {
+    return (
+      <div className="relative flex h-full min-h-[210px] flex-col overflow-hidden rounded-2xl border border-white/15 bg-[#050812]">
+        <img
+          src={exhibit.thumbnail}
+          alt={exhibit.title}
+          onError={() => setImgFailed(true)}
+          className="h-full w-full object-cover"
+        />
+      </div>
+    );
+  }
+
+  if (exhibit.id === 'dup-021-aegis-mirror') {
+    const layers = [
+      {
+        code: '01',
+        name: 'סינון PII',
+        role: 'Zero-Leak Redaction',
+        desc: 'בידוד שמות, תעודות זהות ומסמכים רגישים לפני שליחת הפרומפט למודל AI.',
+      },
+      {
+        code: '02',
+        name: 'נתב מדיניות',
+        role: 'Deterministic Policy Router',
+        desc: 'אכיפת חוקי ארגון וחינוך דטרמיניסטית עם תיעוד החלטות מלא בזמן אמת.',
+      },
+      {
+        code: '03',
+        name: 'בקרת זמנים',
+        role: 'Watchdog Latency',
+        desc: 'מעקב זמינות, חוזה זמן תגובה וגיבוי PocketBase מובנה.',
+      },
+    ];
+    const current = layers[aegisStep];
+
+    return (
+      <div className="flex h-full flex-col justify-between rounded-2xl border border-[#84e8ff]/28 bg-gradient-to-br from-[#081726]/85 to-[#040710]/92 p-4">
+        <div className="flex items-center justify-between text-[11px] text-[#84e8ff]">
+          <span className="inline-flex items-center gap-1.5 font-medium">
+            <Lock className="h-3.5 w-3.5" />
+            <span>שכבת הגנת Aegis Mirror</span>
+          </span>
+          <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-emerald-300">
+            DUP-021 · GUARD ON
+          </span>
+        </div>
+
+        <div className="my-3 grid grid-cols-3 gap-2">
+          {layers.map((step, i) => (
+            <button
+              key={step.role}
+              type="button"
+              onClick={() => setAegisStep(i)}
+              className={`cursor-pointer rounded-xl border p-2.5 text-right transition-all ${
+                aegisStep === i
+                  ? 'border-[#84e8ff]/65 bg-[#48d6fc]/18 shadow-[0_0_18px_rgba(72,214,252,0.2)]'
+                  : 'border-white/12 bg-white/[0.03] hover:bg-white/[0.07]'
+              }`}
+            >
+              <div dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] text-[#84e8ff]">
+                {step.code}
+              </div>
+              <div className="mt-0.5 text-xs font-semibold text-white">{step.name}</div>
+            </button>
+          ))}
+        </div>
+
+        <div className="rounded-xl border border-white/12 bg-white/[0.04] p-3">
+          <div dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] text-[#84e8ff]">
+            {current.role}
+          </div>
+          <p className="mt-1 text-xs leading-relaxed text-[#dce5f5]">{current.desc}</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (exhibit.id === 'dup-024-hanukkah-presentation') {
+    const slides = [
+      {
+        tag: 'פתיחה כיתתית',
+        title: 'מרד החשמונאים — אור מול חושך',
+        body: 'שאלת פתיחה לתלמידים: מה נותן לאדם או לקבוצה אומץ לשמור על זהותם?',
+      },
+      {
+        tag: 'דילמה היסטורית',
+        title: 'מודיעין · החלטה בזמן אמת',
+        body: 'הכיתה מתחלקת לקבוצות ובוחרת מסלול פעולה מול גזירות אנטיוכוס.',
+      },
+      {
+        tag: 'הפעלת אור וגבורה',
+        title: 'חידון שמונת הנרות',
+        body: '8 תחנות קצרות להקרנה בלוח או להדפסה כדף פעילות לכיתה ולמשפחה.',
+      },
+    ];
+    const current = slides[hanukkahSlide];
+
+    return (
+      <div className="flex h-full flex-col justify-between rounded-2xl border border-[#f8d478]/30 bg-gradient-to-br from-[#1d1407]/85 via-[#090c16]/90 to-[#06131f]/85 p-4">
+        <div className="flex items-center justify-between text-[11px] text-[#f8d478]">
+          <span className="inline-flex items-center gap-1.5 font-medium">
+            <Flame className="h-3.5 w-3.5" />
+            <span>תצוגה מקדימה · מערך שיעור חנוכה</span>
+          </span>
+          <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-[#fff1c7]">
+            SLIDE 0{hanukkahSlide + 1} / 03
+          </span>
+        </div>
+
+        <div className="my-3 rounded-xl border border-[#f8d478]/25 bg-white/[0.05] p-3.5">
+          <div className="inline-flex items-center gap-1.5 rounded-full border border-[#f8d478]/35 bg-[#f2be4e]/12 px-2.5 py-0.5 text-[10px] font-medium text-[#fff1c7]">
+            <BookOpen className="h-3 w-3" />
+            <span>{current.tag}</span>
+          </div>
+          <div className="mt-2 text-sm font-bold text-white">{current.title}</div>
+          <p className="mt-1 text-xs leading-relaxed text-[#e6edf9]">{current.body}</p>
+        </div>
+
+        <div className="flex flex-wrap gap-1.5">
+          {slides.map((s, idx) => (
+            <button
+              key={s.tag}
+              type="button"
+              onClick={() => setHanukkahSlide(idx)}
+              className={`cursor-pointer rounded-lg border px-2.5 py-1 text-[11px] transition-colors ${
+                hanukkahSlide === idx
+                  ? 'border-[#f8d478]/65 bg-[#f2be4e]/22 text-white'
+                  : 'border-white/14 bg-white/[0.03] text-[#c7d2e6] hover:text-white'
+              }`}
+            >
+              {idx + 1}. {s.tag}
+            </button>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  if (exhibit.id === 'dup-038-concerned-citizens') {
+    return (
+      <div className="flex h-full flex-col justify-between rounded-2xl border border-[#f8d478]/28 bg-gradient-to-br from-[#141724]/85 via-[#090d19]/90 to-[#061822]/85 p-4">
+        <div className="flex items-center justify-between text-[11px] text-[#f8d478]">
+          <span className="inline-flex items-center gap-1.5 font-medium">
+            <Vote className="h-3.5 w-3.5" />
+            <span>אזרחים מודאגים · פלטפורמה חיה</span>
+          </span>
+          <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-emerald-300">
+            100% LIVE
+          </span>
+        </div>
+
+        <div className="my-3 grid grid-cols-2 gap-2.5">
+          <div className="rounded-xl border border-white/12 bg-white/[0.04] p-3">
+            <div className="text-[10px] font-semibold text-[#84e8ff]">תדריך לשר החינוך</div>
+            <div className="mt-1 text-sm font-bold text-white">4 תביעות מדיניות</div>
+            <p className="mt-1 text-[11px] leading-relaxed text-[#cfd8ea]">
+              מסמך א-מפלגתי בהיר לקריאה ושיתוף עם הורים ומנהלים.
+            </p>
+          </div>
+          <div className="rounded-xl border border-white/12 bg-white/[0.04] p-3">
+            <div className="text-[10px] font-semibold text-[#f8d478]">סקר אנונימי · 2 דקות</div>
+            <div className="mt-1 text-sm font-bold text-white">מונה קולות חי</div>
+            <p className="mt-1 text-[11px] leading-relaxed text-[#cfd8ea]">
+              ללא רישום וללא ספאם — תוצאות שקופות בזמן אמת.
+            </p>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-[11px] text-[#dce5f5]">
+          <span>מוכן לשיתוף מיידי בווטסאפ וברשתות</span>
+          <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-[#84e8ff]">
+            concerned-citizens.vercel.app
+          </span>
+        </div>
+      </div>
+    );
+  }
 
   if (exhibit.nodeCode === '01') {
     const scenarios = {
