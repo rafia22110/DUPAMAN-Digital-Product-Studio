@@ -293,81 +293,21 @@ function loadTransparentLogoCanvas(): Promise<HTMLCanvasElement | null> {
 }
 
 /**
- * Loads Illustrative_Image2_956e8c1e.jpg (converting its dark background to 75% transparent)
- * and the background-free DUPAMAN logo in parallel.
+ * Loads the background-free DUPAMAN logo (static constellation overlay image removed).
  */
 export function loadProcessedOverlayImage(): Promise<ProcessedOverlayAsset | null> {
   if (cachedOverlayPromise) return cachedOverlayPromise;
 
-  const neuralPromise = new Promise<HTMLCanvasElement | null>((resolve) => {
-    const img = new Image();
-    img.crossOrigin = 'anonymous';
-    img.referrerPolicy = 'no-referrer';
-
-    img.onload = () => {
-      const w = img.naturalWidth || 720;
-      const h = img.naturalHeight || 720;
-      const off = document.createElement('canvas');
-      off.width = w;
-      off.height = h;
-      const ctx = off.getContext('2d');
-      if (!ctx) {
-        resolve(null);
-        return;
-      }
-
-      ctx.drawImage(img, 0, 0, w, h);
-      const imgData = ctx.getImageData(0, 0, w, h);
-      const data = imgData.data;
-
-      for (let y = 0; y < h; y++) {
-        const ny = (y / h - 0.5) * 2; // -1..1
-        for (let x = 0; x < w; x++) {
-          const nx = (x / w - 0.5) * 2; // -1..1
-          const idx = (y * w + x) * 4;
-          const r = data[idx];
-          const g = data[idx + 1];
-          const b = data[idx + 2];
-
-          const peak = Math.max(r, g, b) / 255;
-          const lum = (0.299 * r + 0.587 * g + 0.114 * b) / 255;
-          const energy = Math.max(peak, lum);
-
-          // Smooth edge feathering so the image melts seamlessly into the 3D fly-through
-          const edgeDist = Math.max(Math.abs(nx), Math.abs(ny));
-          const edgeFeather = edgeDist > 0.82 ? Math.max(0, 1 - (edgeDist - 0.82) / 0.18) : 1;
-
-          // Gently suppress tiny watermark-like ticks at extreme bottom-right corner
-          const isBottomRightCorner = nx > 0.62 && ny > 0.78;
-          const cornerMask = isBottomRightCorner ? 0.12 : 1;
-
-          // Background pixels -> 75% transparent (alpha = 0.25); luminous neurons -> crisp visibility
-          const t = Math.min(1, Math.max(0, (energy - 0.08) / 0.42));
-          const smoothT = t * t * (3 - 2 * t);
-          const alphaNorm = (0.25 + smoothT * 0.68) * edgeFeather * cornerMask;
-
-          data[idx + 3] = Math.round(alphaNorm * 255);
-        }
-      }
-
-      ctx.putImageData(imgData, 0, 0);
-      resolve(off);
+  cachedOverlayPromise = loadTransparentLogoCanvas().then((logoCanvas) => {
+    const emptyCanvas = document.createElement('canvas');
+    emptyCanvas.width = 1;
+    emptyCanvas.height = 1;
+    return {
+      canvas: emptyCanvas,
+      logoCanvas,
+      sparkles: createImageNeuronSparkles(),
     };
-
-    img.onerror = () => resolve(null);
-    img.src = OVERLAY_IMAGE_SRC;
   });
-
-  cachedOverlayPromise = Promise.all([neuralPromise, loadTransparentLogoCanvas()]).then(
-    ([neuralCanvas, logoCanvas]) => {
-      if (!neuralCanvas) return null;
-      return {
-        canvas: neuralCanvas,
-        logoCanvas,
-        sparkles: createImageNeuronSparkles(),
-      };
-    }
-  );
 
   return cachedOverlayPromise;
 }
@@ -405,17 +345,9 @@ export function renderOverlayImageLayer(
 
   ctx.save();
 
-  // 1. Draw the processed image dimmed into deep obsidian so the mouse flashlight & arcs shine boldly
-  ctx.globalCompositeOperation = 'source-over';
-  ctx.globalAlpha = 0.58 * entranceAlpha;
-  ctx.drawImage(overlay.canvas, drawX, drawY, baseSize, baseSize);
-
-  // Subtle luminance glow on the glowing neurons via screen pass
+  // Delicate, light sparkle/twinkle effect on the synaptic constellation points
   ctx.globalCompositeOperation = 'screen';
   ctx.globalAlpha = (0.14 + 0.05 * Math.sin(loopNorm * twoPi * 2)) * entranceAlpha;
-  ctx.drawImage(overlay.canvas, drawX, drawY, baseSize, baseSize);
-
-  // 2. Delicate, light sparkle/twinkle effect on the image's neurons & synaptic brains
   const scaleFactor = baseSize / 720;
   for (const sp of overlay.sparkles) {
     const wave = Math.sin(loopNorm * twoPi * sp.cycles + sp.phase);
