@@ -1,7 +1,7 @@
-import { useEffect } from 'react';
-import { ArrowRight, Bot } from 'lucide-react';
+import { useEffect, useMemo, useState } from 'react';
+import { ArrowRight, Bot, ChevronLeft, ChevronRight } from 'lucide-react';
 import { DUPAMAN_DOMAINS, type BrainDomain } from '../data/dupamanCatalog';
-import { findExhibitByDomainId } from '../data/studioSamples';
+import { useStudioExhibits } from '../data/exhibitsStore';
 import { CrystalButton } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { StudioExhibitCard } from './StudioExhibitCard';
@@ -22,6 +22,17 @@ export function DomainIndexView({
   onOpenBot,
   onOpenLogoSection,
 }: DomainIndexViewProps) {
+  const allExhibits = useStudioExhibits();
+  const domainExhibits = useMemo(
+    () => allExhibits.filter((e) => e.domainId === domain.id),
+    [allExhibits, domain.id]
+  );
+  const [activeIdx, setActiveIdx] = useState(0);
+
+  useEffect(() => {
+    setActiveIdx(0);
+  }, [domain.id]);
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onGoHome();
@@ -30,7 +41,8 @@ export function DomainIndexView({
     return () => window.removeEventListener('keydown', onKey);
   }, [onGoHome]);
 
-  const exhibit = findExhibitByDomainId(domain.id);
+  const safeIdx = domainExhibits.length > 0 ? activeIdx % domainExhibits.length : 0;
+  const exhibit = domainExhibits[safeIdx];
   const isGold = domain.hue === 'gold';
 
   return (
@@ -87,8 +99,43 @@ export function DomainIndexView({
           </p>
         </header>
 
-        {/* Single Clean Luxury Exhibit Template Centered in Viewport */}
-        <section className="my-4 flex min-h-0 flex-1 items-center justify-center">
+        {/* Single Clean Luxury Exhibit Template Centered in Viewport (with subtle switcher only if Rafael added >1 item) */}
+        <section className="my-4 flex min-h-0 flex-1 flex-col items-center justify-center gap-2.5">
+          {domainExhibits.length > 1 && (
+            <div className="flex flex-wrap items-center justify-center gap-1.5">
+              <CrystalButton
+                hue="neutral"
+                size="sm"
+                onClick={() =>
+                  setActiveIdx((prev) => (prev - 1 + domainExhibits.length) % domainExhibits.length)
+                }
+                className="px-2.5 py-1 text-[11px]"
+              >
+                <ChevronRight className="h-3.5 w-3.5" />
+              </CrystalButton>
+              {domainExhibits.map((item, idx) => (
+                <CrystalButton
+                  key={item.id}
+                  hue={domain.hue}
+                  size="sm"
+                  active={idx === safeIdx}
+                  onClick={() => setActiveIdx(idx)}
+                  className="px-3 py-1 text-[11px]"
+                >
+                  <span>{item.title}</span>
+                </CrystalButton>
+              ))}
+              <CrystalButton
+                hue="neutral"
+                size="sm"
+                onClick={() => setActiveIdx((prev) => (prev + 1) % domainExhibits.length)}
+                className="px-2.5 py-1 text-[11px]"
+              >
+                <ChevronLeft className="h-3.5 w-3.5" />
+              </CrystalButton>
+            </div>
+          )}
+
           {exhibit ? (
             <div className="w-full max-w-5xl">
               <StudioExhibitCard

@@ -16,6 +16,7 @@ import {
   searchStudioExhibits,
   type StudioExhibitSample,
 } from '../data/studioSamples';
+import { useStudioExhibits } from '../data/exhibitsStore';
 import { CrystalButton, CrystalCard3D } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { StudioExhibitCard } from './StudioExhibitCard';
@@ -60,6 +61,7 @@ export function BotAndSubsView({
   const [mobileView, setMobileView] = useState<'bot' | 'card'>('bot');
 
   // Conversational & Spotlight Runtime State Machine
+  const activeExhibits = useStudioExhibits();
   const [botState, setBotState] = useState<BotRuntimeState>('waking');
   const [spotlightExhibit, setSpotlightExhibit] = useState<StudioExhibitSample | null>(null);
   const [messages, setMessages] = useState<BotMessage[]>([
@@ -146,7 +148,20 @@ export function BotAndSubsView({
     setInput('');
     setThinking(true);
 
-    const matchedExhibit = searchStudioExhibits(clean);
+    const qLower = clean.toLowerCase();
+    const matchedFromActive = activeExhibits.find(
+      (ex) =>
+        ex.title.toLowerCase().includes(qLower) ||
+        ex.summary.toLowerCase().includes(qLower) ||
+        ex.nodeTitle.toLowerCase().includes(qLower) ||
+        ex.techTags.some((t) => t.toLowerCase().includes(qLower))
+    );
+    const fallbackMatch = searchStudioExhibits(clean);
+    const matchedExhibit =
+      matchedFromActive ||
+      (fallbackMatch && activeExhibits.some((e) => e.id === fallbackMatch.id)
+        ? activeExhibits.find((e) => e.id === fallbackMatch.id)
+        : undefined);
 
     try {
       const res = await fetch('/api/bot/chat', {

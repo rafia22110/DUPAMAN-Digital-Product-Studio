@@ -6,6 +6,7 @@ import crypto from 'node:crypto';
 import { fileURLToPath } from 'node:url';
 import { GoogleGenAI } from '@google/genai';
 import { STUDIO_EXHIBITS } from './src/data/studioSamples.ts';
+import exhibitsApiHandler from './api/exhibits.ts';
 import {
   buildA2UISurfaceMessages,
   findStarterNode,
@@ -757,6 +758,14 @@ async function startServer() {
     } catch {
       res.json({ fallback: true });
     }
+  });
+
+  // נתיב בקרה וסנכרון מבוקר של לוח הבקרה הפרטי מול Google Sheets
+  app.all('/api/exhibits', async (req: Request, res: Response) => {
+    await exhibitsApiHandler(
+      req as unknown as Parameters<typeof exhibitsApiHandler>[0],
+      res as unknown as Parameters<typeof exhibitsApiHandler>[1]
+    );
   });
 
   // Mount Vite middleware in dev or static dist in production
