@@ -8,7 +8,7 @@ import {
 export const STUDIO_OWNER_EMAIL = 'rafiargsnti221169@gmail.com';
 export const STUDIO_OWNER_NAME = 'רפאל ארגנטי';
 export const STUDIO_SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/1ypSdymFV-oufB1YEKzNii9uvm05FwdmzN8K0fBkZxKI/edit?gid=445464849#gid=445464849';
+  'https://docs.google.com/spreadsheets/d/1ypSdymFV-oufB1YEKzNii9uvm05FwdmzN8K0fBkZxKI/edit?gid=326580483#gid=326580483';
 
 export const AUTH_STORAGE_KEY = 'dupaman_user_session_v1';
 const LOCAL_CMS_EXHIBITS_KEY = 'dupaman_owner_cms_exhibits_v1';

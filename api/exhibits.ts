@@ -19,6 +19,7 @@ interface VercelRes extends ServerResponse {
 const OWNER_EMAIL = 'rafiargsnti221169@gmail.com';
 const DEFAULT_SHEET_ID = '1ypSdymFV-oufB1YEKzNii9uvm05FwdmzN8K0fBkZxKI';
 const DEFAULT_SHEET_GID = '445464849';
+const DEFAULT_CMS_GID = '326580483';
 
 const NODE_META: Record<
   StudioExhibitSample['nodeCode'],
@@ -226,7 +227,8 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     let remoteExhibits: StudioExhibitSample[] = [];
     let sheetConnected = false;
 
-    // 1. Read published CMS exhibits from Apps Script Web App if connected
+    // 1. Read published CMS exhibits from Apps Script Web App if connected,
+    //    or directly from the live Studio_CMS tab (gid=326580483) in Google Sheets!
     if (scriptUrl && scriptUrl.startsWith('https://script.google.com/')) {
       try {
         const upstream = await fetch(scriptUrl, { redirect: 'follow' });
@@ -234,6 +236,36 @@ export default async function handler(req: VercelReq, res: VercelRes) {
           const data = (await upstream.json()) as { ok?: boolean; exhibits?: Record<string, unknown>[] };
           if (data.ok && Array.isArray(data.exhibits)) {
             remoteExhibits = data.exhibits
+              .map(normalizeCmsRecord)
+              .filter((e): e is StudioExhibitSample => Boolean(e));
+            sheetConnected = true;
+          }
+        }
+      } catch {
+        // fall through to direct Studio_CMS CSV feed
+      }
+    }
+
+    if (remoteExhibits.length === 0) {
+      const cmsGid = (process.env.DUPAMAN_CMS_GID || DEFAULT_CMS_GID).trim();
+      try {
+        const cmsCsvRes = await fetch(
+          `https://docs.google.com/spreadsheets/d/${encodeURIComponent(sheetId)}/export?format=csv&gid=${encodeURIComponent(cmsGid)}`,
+          { redirect: 'follow' }
+        );
+        if (cmsCsvRes.ok) {
+          const cmsCsvText = await cmsCsvRes.text();
+          const parsedCms = parseCsvRows(cmsCsvText);
+          if (parsedCms.length > 1) {
+            const headers = parsedCms[0].map((h) => h.trim());
+            const records = parsedCms.slice(1).map((cols) => {
+              const rec: Record<string, unknown> = {};
+              headers.forEach((h, idx) => {
+                rec[h] = (cols[idx] || '').trim();
+              });
+              return rec;
+            });
+            remoteExhibits = records
               .map(normalizeCmsRecord)
               .filter((e): e is StudioExhibitSample => Boolean(e));
             sheetConnected = true;
