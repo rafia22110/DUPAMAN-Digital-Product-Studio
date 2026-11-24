@@ -1,21 +1,29 @@
 import { useEffect, useMemo, useState } from 'react';
 import {
+  ArrowLeft,
   ArrowRight,
   Bot,
+  Download,
   FileText,
   Film,
   FolderOpen,
   Globe,
   Presentation,
+  Printer,
   Search,
+  Sparkles,
 } from 'lucide-react';
 import { DUPAMAN_DOMAINS, type BrainDomain } from '../data/dupamanCatalog';
 import { useStudioExhibits } from '../data/exhibitsStore';
 import type { ExhibitMediaType, StudioExhibitSample } from '../data/studioSamples';
-import { ExhibitContentViewerModal } from './ExhibitContentViewerModal';
+import {
+  ExhibitContentViewerModal,
+  triggerPrintExhibitSheet,
+  triggerSmartDownloadExhibit,
+} from './ExhibitContentViewerModal';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { CrystalButton } from './GlassPrimitives';
-import { GalleryResourceCard } from './StudioExhibitCard';
+import { GalleryResourceCard, getExhibitCover } from './StudioExhibitCard';
 import { SubtleBrainBackdrop } from './SubtleBrainBackdrop';
 
 interface DomainIndexViewProps {
@@ -33,9 +41,9 @@ const MEDIA_FILTERS: Array<{
 }> = [
   { id: 'all', label: 'הכול', icon: FolderOpen },
   { id: 'presentation', label: 'מצגות', icon: Presentation },
-  { id: 'pdf', label: 'PDF ומסמכים', icon: FileText },
+  { id: 'pdf', label: 'מאמרים, PDF ודפי עבודה', icon: FileText },
   { id: 'video', label: 'וידאו', icon: Film },
-  { id: 'live-app', label: 'אתרים וכלים חיים', icon: Globe },
+  { id: 'live-app', label: 'אפליקציות ואתרים', icon: Globe },
 ];
 
 export function DomainIndexView({
@@ -108,11 +116,15 @@ export function DomainIndexView({
 
   const isGold = domain.hue === 'gold';
   const isEducationalNode = domain.id === 'brain-bottom-left';
+  const featuredItem =
+    selectedSection === 'all' && selectedMedia === 'all' && !searchQuery.trim()
+      ? filteredExhibits[0]
+      : null;
 
   return (
     <div
       dir="rtl"
-      className="fixed inset-0 flex h-screen w-screen flex-col items-center justify-between overflow-hidden bg-[#04070f] text-[#f4f7fc]"
+      className="fixed inset-0 flex h-screen w-screen flex-col items-center justify-between overflow-hidden bg-[#03050b] text-[#f4f7fc]"
     >
       <SubtleBrainBackdrop accent={isGold ? 'gold' : 'cyan'} />
 
@@ -135,9 +147,9 @@ export function DomainIndexView({
         </CrystalButton>
       </div>
 
-      {/* Organized Gallery & Content Repository Container */}
-      <main className="relative z-20 flex h-full w-full max-w-6xl flex-col gap-3.5 px-4 pt-16 pb-4 sm:px-8 sm:pt-14 sm:pb-5">
-        {/* Clean Repository Header */}
+      {/* Luxury Spatial Gallery Canvas */}
+      <main className="relative z-20 flex h-full w-full max-w-6xl flex-col gap-3 px-4 pt-16 pb-4 sm:px-8 sm:pt-12 sm:pb-5">
+        {/* Sleek Top Title Strip */}
         <header className="flex shrink-0 flex-col items-center text-center">
           <div className="inline-flex items-center gap-2 text-[11px] font-semibold tracking-widest text-[#cbd5e1]">
             <span
@@ -152,128 +164,205 @@ export function DomainIndexView({
               {domain.kicker}
             </span>
             <span className="opacity-40">·</span>
-            <span>{domainExhibits.length} תכנים במאגר</span>
+            <span className="text-white/85">{domainExhibits.length} תכנים במאגר</span>
           </div>
           <h1
             style={{ textShadow: '0 4px 24px rgba(2,4,10,0.85)' }}
-            className="mt-1 text-2xl font-extrabold tracking-tight text-white sm:text-3xl"
+            className="mt-0.5 text-2xl font-extrabold tracking-tight text-white sm:text-3xl"
           >
             {domain.title}
           </h1>
-          <p className="mt-1 max-w-2xl text-xs leading-relaxed text-[#dce5f5] sm:text-sm">
+          <p className="mt-0.5 max-w-2xl text-xs leading-relaxed text-[#cbd5e1] sm:text-sm">
             {isEducationalNode
-              ? 'מאגר פעילויות, מצגות וכלים נגיש למורות ולהורים — לחצו על כל כרטיסייה לצפייה ישירה בתוכן המלא, הורדה, הדפסה או מעבר לפריט הבא.'
+              ? 'מאגר פעילויות, מצגות ודפי עבודה — לחצו על כל כרטיסייה לצפייה מלאה, הורדה או הדפסה.'
               : domain.description}
           </p>
         </header>
 
-        {/* Practical Repository Filter Bar: Search + Sections ("מדורים") + Media Type */}
-        <div className="flex shrink-0 flex-col gap-2.5 rounded-2xl border border-white/14 bg-[#0b1120]/85 p-3 backdrop-blur-md">
-          <div className="flex flex-wrap items-center justify-between gap-2.5">
-            {/* Quick Search */}
-            <div className="relative min-w-[210px] flex-1 sm:max-w-sm">
-              <Search className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
-              <input
-                type="text"
-                value={searchQuery}
-                onChange={(e) => setSearchQuery(e.target.value)}
-                placeholder="חיפוש חופשי במאגר (למשל: חנוכה, PDF, מצגת)..."
-                className="w-full rounded-xl border border-white/16 bg-white/[0.05] py-2 pr-9 pl-3 text-xs text-white placeholder-[#94a3b8] outline-none focus:border-[#f8d478]/60 sm:text-sm"
-              />
-            </div>
-
-            {/* Media-Type Filter Pills */}
-            <div className="flex flex-wrap items-center gap-1.5">
-              {MEDIA_FILTERS.map((mf) => {
-                const Icon = mf.icon;
-                const active = selectedMedia === mf.id;
-                return (
-                  <button
-                    key={mf.id}
-                    type="button"
-                    onClick={() => setSelectedMedia(mf.id)}
-                    className={`inline-flex cursor-pointer items-center gap-1.5 rounded-xl border px-3 py-1.5 text-xs font-semibold transition-all ${
-                      active
-                        ? isGold
-                          ? 'border-[#f8d478]/65 bg-[#f2be4e]/22 text-white'
-                          : 'border-[#84e8ff]/65 bg-[#48d6fc]/22 text-white'
-                        : 'border-white/12 bg-white/[0.04] text-[#cbd5e1] hover:border-white/25 hover:text-white'
-                    }`}
-                  >
-                    <Icon className="h-3.5 w-3.5" />
-                    <span>{mf.label}</span>
-                  </button>
-                );
-              })}
-            </div>
-          </div>
-
-          {/* Clear Department / Section ("מדורים") Tabs */}
-          {sections.length > 1 && (
-            <div className="flex flex-wrap items-center gap-1.5 border-t border-white/10 pt-2">
-              <span className="ml-1 text-[11px] font-bold text-[#9eb2d1]">מדורים:</span>
-              <button
-                type="button"
-                onClick={() => setSelectedSection('all')}
-                className={`cursor-pointer rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all ${
-                  selectedSection === 'all'
-                    ? 'border-white/45 bg-white/16 text-white'
-                    : 'border-white/10 bg-white/[0.03] text-[#cbd5e1] hover:text-white'
+        {/* Scrollable Luxury Gallery Area (Hero Spotlight + Filter Pills + Section Grids) */}
+        <section className="min-h-0 flex-1 overflow-y-auto px-0.5 py-1">
+          <div className="flex flex-col gap-5 pb-4">
+            {/* 1. LUXURY HERO SPOTLIGHT BANNER (inspired by Pinterest Chess / Steary / Flix references) */}
+            {featuredItem && (
+              <div
+                className={`relative overflow-hidden rounded-[26px] border p-5 sm:p-7 ${
+                  isGold
+                    ? 'border-[#f8d478]/35 shadow-[0_24px_70px_rgba(0,0,0,0.68)]'
+                    : 'border-[#84e8ff]/35 shadow-[0_24px_70px_rgba(0,0,0,0.68)]'
                 }`}
               >
-                כל המדורים ({domainExhibits.length})
-              </button>
-              {sections.map((sec) => {
-                const active = selectedSection === sec;
-                return (
+                <img
+                  src={getExhibitCover(featuredItem)}
+                  alt={featuredItem.title}
+                  className="absolute inset-0 h-full w-full object-cover opacity-55"
+                />
+                <div className="absolute inset-0 bg-gradient-to-l from-[#04070e]/95 via-[#060b16]/82 to-[#04070e]/50" />
+
+                <div className="relative z-10 flex flex-col justify-between gap-4 lg:flex-row lg:items-end">
+                  <div className="max-w-2xl space-y-2">
+                    <div className="flex flex-wrap items-center gap-2 text-[11px]">
+                      <span
+                        className={`inline-flex items-center gap-1 rounded-full border px-3 py-0.5 font-bold backdrop-blur-md ${
+                          isGold
+                            ? 'border-[#f8d478]/50 bg-[#f2be4e]/18 text-[#fff3cf]'
+                            : 'border-[#84e8ff]/50 bg-[#48d6fc]/18 text-[#dcf8ff]'
+                        }`}
+                      >
+                        <Sparkles className="h-3 w-3" />
+                        <span>מומלץ לפתיחה · {featuredItem.sectionLabel}</span>
+                      </span>
+                      <span className="rounded-full border border-emerald-400/40 bg-emerald-500/18 px-2.5 py-0.5 font-bold text-emerald-200">
+                        {featuredItem.readiness}
+                      </span>
+                    </div>
+
+                    <h2 className="text-xl font-extrabold tracking-tight text-white sm:text-2xl">
+                      {featuredItem.title}
+                    </h2>
+                    <p className="text-xs leading-relaxed text-[#e2eaf7] sm:text-sm">
+                      {featuredItem.summary}
+                    </p>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2 shrink-0">
+                    <button
+                      type="button"
+                      onClick={() => setViewerIndex(0)}
+                      className={`inline-flex cursor-pointer items-center gap-2 rounded-full px-5 py-2.5 text-xs font-extrabold transition-all sm:text-sm ${
+                        isGold
+                          ? 'bg-gradient-to-l from-[#f8d478] to-[#eab308] text-[#0b0e14] shadow-[0_8px_28px_rgba(248,212,120,0.3)] hover:brightness-110'
+                          : 'bg-gradient-to-l from-[#84e8ff] to-[#38bdf8] text-[#06101b] shadow-[0_8px_28px_rgba(72,214,252,0.3)] hover:brightness-110'
+                      }`}
+                    >
+                      <span>צפייה בתוכן המלא</span>
+                      <ArrowLeft className="h-4 w-4" />
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => triggerSmartDownloadExhibit(featuredItem)}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/22 bg-white/[0.08] px-4 py-2.5 text-xs font-bold text-white backdrop-blur-md hover:bg-white/18"
+                    >
+                      <Download className="h-3.5 w-3.5 text-[#84e8ff]" />
+                      <span>הורדה</span>
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={() => triggerPrintExhibitSheet(featuredItem)}
+                      className="inline-flex cursor-pointer items-center gap-1.5 rounded-full border border-white/22 bg-white/[0.08] px-4 py-2.5 text-xs font-bold text-white backdrop-blur-md hover:bg-white/18"
+                    >
+                      <Printer className="h-3.5 w-3.5 text-[#f8d478]" />
+                      <span>הדפסה</span>
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+            {/* 2. SLEEK SEARCH & DEPARTMENT FILTER BAR */}
+            <div className="flex flex-col gap-2.5 rounded-2xl border border-white/12 bg-[#0a0f1c]/85 p-3 backdrop-blur-xl">
+              <div className="flex flex-wrap items-center justify-between gap-2.5">
+                <div className="relative min-w-[200px] flex-1 sm:max-w-sm">
+                  <Search className="pointer-events-none absolute top-1/2 right-3 h-4 w-4 -translate-y-1/2 text-[#94a3b8]" />
+                  <input
+                    type="text"
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    placeholder="חיפוש מהיר (חנוכה, דפי עבודה, AI, מאמר)..."
+                    className="w-full rounded-full border border-white/14 bg-white/[0.05] py-2 pr-9 pl-4 text-xs text-white placeholder-[#94a3b8] outline-none focus:border-[#f8d478]/60 sm:text-sm"
+                  />
+                </div>
+
+                <div className="flex flex-wrap items-center gap-1.5">
+                  {MEDIA_FILTERS.map((mf) => {
+                    const Icon = mf.icon;
+                    const active = selectedMedia === mf.id;
+                    return (
+                      <button
+                        key={mf.id}
+                        type="button"
+                        onClick={() => setSelectedMedia(mf.id)}
+                        className={`inline-flex cursor-pointer items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold transition-all ${
+                          active
+                            ? isGold
+                              ? 'border-[#f8d478]/65 bg-[#f2be4e]/22 text-white'
+                              : 'border-[#84e8ff]/65 bg-[#48d6fc]/22 text-white'
+                            : 'border-white/10 bg-white/[0.04] text-[#cbd5e1] hover:border-white/25 hover:text-white'
+                        }`}
+                      >
+                        <Icon className="h-3.5 w-3.5" />
+                        <span>{mf.label}</span>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {sections.length > 1 && (
+                <div className="flex flex-wrap items-center gap-1.5 border-t border-white/10 pt-2">
+                  <span className="ml-1 text-[11px] font-bold text-[#94a3b8]">מדורים:</span>
                   <button
-                    key={sec}
                     type="button"
-                    onClick={() => setSelectedSection(sec)}
-                    className={`cursor-pointer rounded-lg border px-2.5 py-1 text-xs font-semibold transition-all ${
-                      active
-                        ? isGold
-                          ? 'border-[#f8d478]/65 bg-[#f2be4e]/20 text-[#fff4d4]'
-                          : 'border-[#84e8ff]/65 bg-[#48d6fc]/20 text-[#ebfbff]'
+                    onClick={() => setSelectedSection('all')}
+                    className={`cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
+                      selectedSection === 'all'
+                        ? 'border-white/45 bg-white/16 text-white'
                         : 'border-white/10 bg-white/[0.03] text-[#cbd5e1] hover:text-white'
                     }`}
                   >
-                    {sec}
+                    הכול ({domainExhibits.length})
                   </button>
-                );
-              })}
+                  {sections.map((sec) => {
+                    const active = selectedSection === sec;
+                    return (
+                      <button
+                        key={sec}
+                        type="button"
+                        onClick={() => setSelectedSection(sec)}
+                        className={`cursor-pointer rounded-full border px-3 py-1 text-xs font-semibold transition-all ${
+                          active
+                            ? isGold
+                              ? 'border-[#f8d478]/65 bg-[#f2be4e]/20 text-[#fff4d4]'
+                              : 'border-[#84e8ff]/65 bg-[#48d6fc]/20 text-[#ebfbff]'
+                            : 'border-white/10 bg-white/[0.03] text-[#cbd5e1] hover:text-white'
+                        }`}
+                      >
+                        {sec}
+                      </button>
+                    );
+                  })}
+                </div>
+              )}
             </div>
-          )}
-        </div>
 
-        {/* Spacious Scrollable Gallery Organized by Clear Section Headings ("מדורים") */}
-        <section className="min-h-0 flex-1 overflow-y-auto px-0.5 py-1">
-          {groupedBySection.length === 0 ? (
-            <div className="flex h-full flex-col items-center justify-center gap-2 rounded-3xl border border-white/12 bg-white/[0.03] p-8 text-center">
-              <FolderOpen className="h-8 w-8 text-[#94a3b8]" />
-              <div className="text-sm font-bold text-white">לא נמצאו תכנים תואמים לסינון</div>
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedSection('all');
-                  setSelectedMedia('all');
-                  setSearchQuery('');
-                }}
-                className="mt-1 cursor-pointer rounded-xl border border-[#84e8ff]/45 bg-[#48d6fc]/15 px-4 py-1.5 text-xs font-bold text-white hover:bg-[#48d6fc]/28"
-              >
-                הצג את כל התכנים בצומת
-              </button>
-            </div>
-          ) : (
-            <div className="flex flex-col gap-6 pb-3">
-              {groupedBySection.map(([secName, items]) => (
+            {/* 3. LUXURY SECTION-GROUPED GALLERY GRIDS */}
+            {groupedBySection.length === 0 ? (
+              <div className="flex flex-col items-center justify-center gap-2 rounded-3xl border border-white/12 bg-white/[0.03] p-10 text-center">
+                <FolderOpen className="h-9 w-9 text-[#94a3b8]" />
+                <div className="text-sm font-bold text-white">לא נמצאו תכנים תואמים לסינון</div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSelectedSection('all');
+                    setSelectedMedia('all');
+                    setSearchQuery('');
+                  }}
+                  className="mt-1 cursor-pointer rounded-full border border-[#84e8ff]/45 bg-[#48d6fc]/15 px-4 py-1.5 text-xs font-bold text-white hover:bg-[#48d6fc]/28"
+                >
+                  הצג את כל התכנים בצומת
+                </button>
+              </div>
+            ) : (
+              groupedBySection.map(([secName, items]) => (
                 <div key={secName} className="flex flex-col gap-3">
-                  {/* Clear Section Heading ("כותרת מדור ברורה") */}
                   <div className="flex items-center justify-between gap-3">
                     <div className="flex items-center gap-2.5">
                       <span
                         className={`h-2.5 w-2.5 rounded-full ${
-                          isGold ? 'bg-[#f8d478]' : 'bg-[#84e8ff]'
+                          isGold
+                            ? 'bg-[#f8d478] shadow-[0_0_12px_rgba(248,212,120,0.8)]'
+                            : 'bg-[#84e8ff] shadow-[0_0_12px_rgba(132,232,255,0.8)]'
                         }`}
                       />
                       <h2 className="text-base font-extrabold text-white sm:text-lg">{secName}</h2>
@@ -284,40 +373,23 @@ export function DomainIndexView({
                     <div className="hidden h-px flex-1 bg-gradient-to-l from-white/15 to-transparent sm:block" />
                   </div>
 
-                  {/* Clean Responsive Gallery Grid (Video cards span wider just like the sketch!) */}
-                  <div
-                    className={`grid grid-cols-1 gap-4 ${
-                      items.length === 1
-                        ? 'max-w-3xl'
-                        : items.length === 2
-                          ? 'md:grid-cols-2'
-                          : 'md:grid-cols-2 xl:grid-cols-3'
-                    }`}
-                  >
+                  <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
                     {items.map((item) => {
                       const flatIdx = filteredExhibits.findIndex((f) => f.id === item.id);
                       return (
-                        <div
+                        <GalleryResourceCard
                           key={item.id}
-                          className={
-                            item.mediaType === 'video' && items.length > 1
-                              ? 'md:col-span-2'
-                              : ''
-                          }
-                        >
-                          <GalleryResourceCard
-                            exhibit={item}
-                            accessibleMode={isEducationalNode}
-                            onOpenViewer={() => setViewerIndex(flatIdx >= 0 ? flatIdx : 0)}
-                          />
-                        </div>
+                          exhibit={item}
+                          accessibleMode={isEducationalNode}
+                          onOpenViewer={() => setViewerIndex(flatIdx >= 0 ? flatIdx : 0)}
+                        />
                       );
                     })}
                   </div>
                 </div>
-              ))}
-            </div>
-          )}
+              ))
+            )}
+          </div>
         </section>
 
         {/* Minimal Floating Glass Switcher Across All 6 Locked Studio Nodes */}

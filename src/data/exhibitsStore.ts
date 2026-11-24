@@ -4,6 +4,7 @@ import {
   type ExhibitMediaType,
   type StudioExhibitSample,
 } from './studioSamples';
+import { FULL_SHEET_EXHIBITS } from './studioCatalogFull';
 
 export const STUDIO_OWNER_EMAIL = 'rafiargsnti221169@gmail.com';
 export const STUDIO_OWNER_NAME = 'רפאל ארגנטי';
@@ -141,15 +142,21 @@ function setLocalCustomExhibits(list: StudioExhibitSample[]): void {
 
 export function getMergedExhibits(): StudioExhibitSample[] {
   const map = new Map<string, StudioExhibitSample>();
-  for (const ex of getLocalCustomExhibits()) {
+  const seenUrls = new Set<string>();
+
+  const pushUnique = (ex: StudioExhibitSample) => {
+    if (map.has(ex.id)) return;
+    const urlKey = (ex.liveUrl || ex.url || '').trim();
+    if (urlKey && seenUrls.has(urlKey)) return;
+    if (urlKey) seenUrls.add(urlKey);
     map.set(ex.id, ex);
-  }
-  for (const ex of cachedRemoteExhibits) {
-    if (!map.has(ex.id)) map.set(ex.id, ex);
-  }
-  for (const ex of STUDIO_EXHIBITS) {
-    if (!map.has(ex.id)) map.set(ex.id, ex);
-  }
+  };
+
+  for (const ex of getLocalCustomExhibits()) pushUnique(ex);
+  for (const ex of cachedRemoteExhibits) pushUnique(ex);
+  for (const ex of STUDIO_EXHIBITS) pushUnique(ex);
+  for (const ex of FULL_SHEET_EXHIBITS) pushUnique(ex);
+
   return Array.from(map.values());
 }
 

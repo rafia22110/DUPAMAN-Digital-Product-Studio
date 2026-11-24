@@ -245,11 +245,16 @@ export function ExhibitContentViewerModal({
             {media.embedUrl ? (
               <>
                 {!iframeLoaded && (
-                  <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-2 bg-[#070b14]/90 text-center">
-                    <div className="h-8 w-8 animate-spin rounded-full border-2 border-[#f8d478]/30 border-t-[#f8d478]" />
-                    <div className="text-xs font-semibold text-[#dce6f7]">
-                      טוען את התוכן המלא ({exhibit.mediaBadge})...
+                  <div className="pointer-events-none absolute inset-0 z-10 flex flex-col items-center justify-center gap-3 bg-[#070b14]/95 p-6 text-center">
+                    <div className="h-9 w-9 animate-spin rounded-full border-2 border-[#f8d478]/30 border-t-[#f8d478]" />
+                    <div className="text-sm font-bold text-white">
+                      טוען את התצוגה החיה ({exhibit.mediaBadge})...
                     </div>
+                    {primaryUrl && (
+                      <p className="max-w-sm text-xs text-[#94a3b8]">
+                        אם המסמך מוגדר כפרטי ב-Google Drive או חסום להטמעה, השתמשו בכפתור &quot;פתח במסך מלא ↗&quot; למעלה.
+                      </p>
+                    )}
                   </div>
                 )}
                 <iframe
@@ -261,6 +266,19 @@ export function ExhibitContentViewerModal({
                   allowFullScreen
                   className="h-full w-full border-0 bg-white"
                 />
+                {primaryUrl && (
+                  <div className="flex items-center justify-between gap-2 border-t border-white/10 bg-[#0b101b]/95 px-4 py-2 text-[11px] text-[#cbd5e1]">
+                    <span>לא רואים את השקפים או שהמסמך דורש הרשאה ב-Google?</span>
+                    <a
+                      href={primaryUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="font-bold text-[#f8d478] hover:underline"
+                    >
+                      פתח ישירות בחלון נפרד ↗
+                    </a>
+                  </div>
+                )}
               </>
             ) : (
               /* Clean accessible preview page when host forbids third-party iframes (e.g. NotebookLM / YouTube channel) */
