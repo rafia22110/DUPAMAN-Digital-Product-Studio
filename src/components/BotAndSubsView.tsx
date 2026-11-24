@@ -11,12 +11,11 @@ import {
 } from 'lucide-react';
 import { DUPAMAN_DOMAINS } from '../data/dupamanCatalog';
 import {
-  PRIMARY_NODE_EXHIBITS,
+  STUDIO_EXHIBITS,
   findExhibitByCode,
   searchStudioExhibits,
   type StudioExhibitSample,
 } from '../data/studioSamples';
-import { searchAllExhibits, useStudioExhibits } from '../data/exhibitsStore';
 import { CrystalButton, CrystalCard3D } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { StudioExhibitCard } from './StudioExhibitCard';
@@ -61,7 +60,6 @@ export function BotAndSubsView({
   const [mobileView, setMobileView] = useState<'bot' | 'card'>('bot');
 
   // Conversational & Spotlight Runtime State Machine
-  const liveExhibits = useStudioExhibits();
   const [botState, setBotState] = useState<BotRuntimeState>('waking');
   const [spotlightExhibit, setSpotlightExhibit] = useState<StudioExhibitSample | null>(null);
   const [messages, setMessages] = useState<BotMessage[]>([
@@ -148,8 +146,7 @@ export function BotAndSubsView({
     setInput('');
     setThinking(true);
 
-    const matchedExhibit =
-      searchAllExhibits(liveExhibits, clean) || searchStudioExhibits(clean);
+    const matchedExhibit = searchStudioExhibits(clean);
 
     try {
       const res = await fetch('/api/bot/chat', {
@@ -443,7 +440,7 @@ export function BotAndSubsView({
                 {/* Direct node jump pills + chat input */}
                 <div className="mt-2 flex shrink-0 flex-col gap-2">
                   <div className="flex flex-wrap gap-1">
-                    {PRIMARY_NODE_EXHIBITS.map((ex) => (
+                    {STUDIO_EXHIBITS.map((ex) => (
                       <button
                         key={ex.id}
                         type="button"
@@ -461,9 +458,7 @@ export function BotAndSubsView({
                   <form
                     onSubmit={(e) => {
                       e.preventDefault();
-                      if (input.trim() && !thinking) {
-                        void sendPrompt(input);
-                      }
+                      void sendPrompt(input);
                     }}
                     className="flex items-center gap-2 rounded-xl border border-white/18 bg-white/[0.04] p-1.5 focus-within:border-[#f8d478]/50"
                   >
@@ -474,15 +469,7 @@ export function BotAndSubsView({
                         lastActivityRef.current = Date.now();
                         setInput(e.target.value);
                       }}
-                      onKeyDown={(e) => {
-                        if (e.key === 'Enter' && !e.shiftKey) {
-                          e.preventDefault();
-                          if (input.trim() && !thinking) {
-                            void sendPrompt(input);
-                          }
-                        }
-                      }}
-                      placeholder="אמור מה אתה מחפש — אייגיס מירור, חנוכה, אזרחים מודאגים, חדר המיזמים..."
+                      placeholder="אמור מה אתה מחפש — ממשקי מחר, למידה חיה, חדר המיזמים..."
                       className="w-full bg-transparent px-2.5 py-1.5 text-xs text-white placeholder-[#93a0b8] outline-none sm:text-sm"
                     />
                     <CrystalButton

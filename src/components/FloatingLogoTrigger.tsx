@@ -1,11 +1,10 @@
 import { useEffect, useRef, useState } from 'react';
-import { Info, LayoutDashboard, LogIn, Mail, ShieldCheck } from 'lucide-react';
+import { Info, LogIn, Mail, ShieldCheck } from 'lucide-react';
 import { loadProcessedOverlayImage } from './PureNeuralFlythrough';
 import { CrystalButton } from './GlassPrimitives';
 import { openUniversalConsentModal } from './UniversalConsentAdapter';
-import { useOwnerSession } from '../data/exhibitsStore';
 
-export type LogoDestination = 'about' | 'contact' | 'login' | 'admin';
+export type LogoDestination = 'about' | 'contact' | 'login';
 
 interface FloatingLogoTriggerProps {
   mode: 'home-canvas' | 'floating-corner';
@@ -21,8 +20,6 @@ export function FloatingLogoTrigger({
   const [open, setOpen] = useState(false);
   const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
-  const ownerSession = useOwnerSession();
-  const isOwner = Boolean(ownerSession?.isOwner);
 
   useEffect(() => {
     if (mode !== 'floating-corner') return;
@@ -62,9 +59,6 @@ export function FloatingLogoTrigger({
     { id: 'about', label: 'אודות', icon: Info, hue: 'cyan' },
     { id: 'contact', label: 'יצירת קשר', icon: Mail, hue: 'gold' },
     { id: 'login', label: 'התחברות', icon: LogIn, hue: 'cyan' },
-    ...(isOwner
-      ? [{ id: 'admin' as LogoDestination, label: 'לוח בקרה · תכנים', icon: LayoutDashboard, hue: 'gold' as const }]
-      : []),
   ];
 
   if (mode === 'home-canvas') {

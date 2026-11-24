@@ -4,7 +4,6 @@ import {
   Bot,
   CheckCircle2,
   Info,
-  LayoutDashboard,
   LogIn,
   LogOut,
   Mail,
@@ -13,18 +12,19 @@ import {
 import { CrystalButton, CrystalCard3D } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { SubtleBrainBackdrop } from './SubtleBrainBackdrop';
-import {
-  STUDIO_OWNER_NAME,
-  isOwnerEmail,
-  saveStoredSession,
-  useOwnerSession,
-} from '../data/exhibitsStore';
 
 interface LogoModalViewsProps {
   section: LogoDestination;
   onSwitchSection: (dest: LogoDestination) => void;
   onGoHome: () => void;
   onOpenBot: (prefillPrompt?: string) => void;
+}
+
+const AUTH_STORAGE_KEY = 'dupaman_user_session_v1';
+
+interface StoredSession {
+  email: string;
+  name: string;
 }
 
 export function LogoModalViews({
@@ -39,8 +39,15 @@ export function LogoModalViews({
   const [contactMsg, setContactMsg] = useState('');
   const [contactSent, setContactSent] = useState(false);
 
-  // Login form (owner-only hidden control panel unlocks strictly for rafiargsnti221169@gmail.com)
-  const session = useOwnerSession();
+  // Login form
+  const [session, setSession] = useState<StoredSession | null>(() => {
+    try {
+      const raw = localStorage.getItem(AUTH_STORAGE_KEY);
+      return raw ? (JSON.parse(raw) as StoredSession) : null;
+    } catch {
+      return null;
+    }
+  });
   const [loginEmail, setLoginEmail] = useState('');
   const [loginPass, setLoginPass] = useState('');
 
@@ -61,24 +68,25 @@ export function LogoModalViews({
   const handleLogin = (e: FormEvent) => {
     e.preventDefault();
     const em = loginEmail.trim().toLowerCase();
-    const pass = loginPass.trim();
-    if (!em || !pass) return;
-    const owner = isOwnerEmail(em);
-    const derivedName = owner ? STUDIO_OWNER_NAME : em.split('@')[0];
-    saveStoredSession({
-      email: em,
-      name: derivedName,
-      isOwner: owner,
-      ...(owner ? { adminPin: pass } : {}),
-    });
-    setLoginPass('');
-    if (owner) {
-      onSwitchSection('admin');
+    if (!em || !loginPass.trim()) return;
+    const derivedName = em.split('@')[0];
+    const next: StoredSession = { email: em, name: derivedName };
+    setSession(next);
+    try {
+      localStorage.setItem(AUTH_STORAGE_KEY, JSON.stringify(next));
+    } catch {
+      // ignore
     }
+    setLoginPass('');
   };
 
   const handleLogout = () => {
-    saveStoredSession(null);
+    setSession(null);
+    try {
+      localStorage.removeItem(AUTH_STORAGE_KEY);
+    } catch {
+      // ignore
+    }
   };
 
   const accent = section === 'contact' ? 'gold' : 'cyan';
@@ -263,16 +271,6 @@ export function LogoModalViews({
                     </div>
                     <div className="font-mono text-xs text-[#c7d3e6]">{session.email}</div>
                     <div className="mt-2 flex flex-wrap justify-center gap-2">
-                      {session.isOwner && (
-                        <CrystalButton
-                          hue="gold"
-                          size="sm"
-                          onClick={() => onSwitchSection('admin')}
-                        >
-                          <LayoutDashboard className="h-3.5 w-3.5 text-[#f8d478]" />
-                          <span>פתיחת לוח בקרה · העלאת תכנים</span>
-                        </CrystalButton>
-                      )}
                       <CrystalButton hue="gold" size="sm" onClick={() => onOpenBot()}>
                         <Bot className="h-3.5 w-3.5 text-[#f8d478]" />
                         <span>למנהל המנויים והבוט</span>
