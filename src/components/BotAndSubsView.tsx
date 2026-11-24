@@ -16,6 +16,7 @@ import {
   searchStudioExhibits,
   type StudioExhibitSample,
 } from '../data/studioSamples';
+import { searchAllExhibits, useStudioExhibits } from '../data/exhibitsStore';
 import { CrystalButton, CrystalCard3D } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { StudioExhibitCard } from './StudioExhibitCard';
@@ -60,6 +61,7 @@ export function BotAndSubsView({
   const [mobileView, setMobileView] = useState<'bot' | 'card'>('bot');
 
   // Conversational & Spotlight Runtime State Machine
+  const liveExhibits = useStudioExhibits();
   const [botState, setBotState] = useState<BotRuntimeState>('waking');
   const [spotlightExhibit, setSpotlightExhibit] = useState<StudioExhibitSample | null>(null);
   const [messages, setMessages] = useState<BotMessage[]>([
@@ -146,7 +148,8 @@ export function BotAndSubsView({
     setInput('');
     setThinking(true);
 
-    const matchedExhibit = searchStudioExhibits(clean);
+    const matchedExhibit =
+      searchAllExhibits(liveExhibits, clean) || searchStudioExhibits(clean);
 
     try {
       const res = await fetch('/api/bot/chat', {

@@ -1,7 +1,7 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { ArrowRight, Bot, ChevronLeft, ChevronRight, LayoutGrid, Maximize2 } from 'lucide-react';
 import { DUPAMAN_DOMAINS, type BrainDomain } from '../data/dupamanCatalog';
-import { findExhibitsByDomainId } from '../data/studioSamples';
+import { useStudioExhibits } from '../data/exhibitsStore';
 import { CrystalButton } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { ExhibitGalleryCard, StudioExhibitCard } from './StudioExhibitCard';
@@ -22,7 +22,11 @@ export function DomainIndexView({
   onOpenBot,
   onOpenLogoSection,
 }: DomainIndexViewProps) {
-  const exhibits = findExhibitsByDomainId(domain.id);
+  const allExhibits = useStudioExhibits();
+  const exhibits = useMemo(
+    () => allExhibits.filter((e) => e.domainId === domain.id),
+    [allExhibits, domain.id]
+  );
   const [activeIdx, setActiveIdx] = useState(0);
   const [viewMode, setViewMode] = useState<'gallery' | 'focus'>(
     domain.id === 'brain-bottom-left' ? 'gallery' : 'focus'
