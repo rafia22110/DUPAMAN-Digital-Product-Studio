@@ -200,6 +200,14 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     const includeInbox =
       String(Array.isArray(req.query?.inbox) ? req.query?.inbox[0] : req.query?.inbox ?? '') === '1';
 
+    if (includeInbox) {
+      res.setHeader('Cache-Control', 'private, no-store');
+      if (!(await verifyOwnerRequest(req, {}))) {
+        res.status(403).json({ ok: false, error: 'הגישה לתיבת הטיוטות מותרת לבעלים בלבד.' });
+        return;
+      }
+    }
+
     const approvedExhibits: StudioExhibitSample[] = [];
     const draftCmsExhibits: StudioExhibitSample[] = [];
     const hiddenIds = new Set<string>();
