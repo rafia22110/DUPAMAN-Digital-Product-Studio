@@ -61,7 +61,7 @@ function doPost(event) {
       setCell_(row, columns.visibility, normalizeVisibility_(payload.visibility));
     } else if (action === 'upsert') {
       setCell_(row, columns.id, id);
-      setCell_(row, columns.code, exhibit.code || exhibit.nodeCode || '');
+      setCell_(row, columns.code, exhibit.code || '');
       setCell_(row, columns.nodeCode, exhibit.nodeCode || '');
       setCell_(row, columns.sectionLabel, exhibit.nodeTitle || '');
       setCell_(row, columns.status, exhibit.status || 'מוכן לבדיקה');
