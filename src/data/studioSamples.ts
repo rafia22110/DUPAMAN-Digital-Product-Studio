@@ -6,7 +6,7 @@ export interface StudioExhibitSample {
   status: string;
   title: string;
   summary: string;
-  techTags: [string, string, string];
+  techTags: string[];
   hue: 'gold' | 'cyan';
   actionType: 'external' | 'bot';
   actionLabel: string;
