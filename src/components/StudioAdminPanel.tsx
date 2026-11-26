@@ -3,7 +3,6 @@ import {
   ArrowRight,
   Check,
   CheckCircle2,
-  Copy,
   Database,
   Edit3,
   ExternalLink,
@@ -25,12 +24,10 @@ import {
   STUDIO_OWNER_NAME,
   STUDIO_SHEET_URL,
   getHiddenExhibitIds,
-  getSavedSheetScriptUrl,
   isOwnerEmail,
   refreshExhibitsFromServer,
   removeOrHideExhibit,
   restoreHiddenExhibit,
-  saveSheetScriptUrl,
   upsertStudioExhibit,
   useOwnerSession,
   useStudioExhibits,
@@ -60,60 +57,6 @@ const NODE_OPTIONS: Array<{
   { code: '06', domainId: 'brain-bottom-right', label: '06 · חדר המיזמים', hue: 'gold' },
 ];
 
-const APPS_SCRIPT_CODE = `const SPREADSHEET_ID = '1ypSdymFV-oufB1YEKzNii9uvm05FwdmzN8K0fBkZxKI';
-const CMS_SHEET_NAME = 'Studio_CMS';
-const ALLOWED_OWNER_EMAIL = 'rafiargsnti221169@gmail.com';
-const HEADERS = ['id','code','nodeCode','sectionLabel','mediaType','mediaBadge','status','readinessPct','title','summary','highlights','techTags','liveUrl','liveLabel','githubUrl','audienceNote','isEducational','updatedAt','מוצג_באתר'];
-
-function getOrCreateCmsSheet() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(CMS_SHEET_NAME);
-  if (!sheet) {
-    sheet = ss.insertSheet(CMS_SHEET_NAME);
-    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-    sheet.setFrozenRows(1);
-    sheet.setRightToLeft(true);
-  }
-  return sheet;
-}
-function jsonOut(o){ return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
-function doGet(){
-  const sheet = getOrCreateCmsSheet();
-  const rows = sheet.getDataRange().getValues();
-  if (rows.length <= 1) return jsonOut({ ok: true, records: [] });
-  const h = rows[0];
-  const records = rows.slice(1).filter(r => String(r[0]||'').trim()).map(r => {
-    const obj = {}; h.forEach((k,i) => obj[String(k)] = r[i]); return obj;
-  });
-  return jsonOut({ ok: true, records });
-}
-function doPost(e){
-  const p = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-  if (String(p.ownerEmail||'').trim().toLowerCase() !== ALLOWED_OWNER_EMAIL) return jsonOut({ ok: false, error: 'Unauthorized' });
-  const sheet = getOrCreateCmsSheet();
-  if (p.action === 'delete') {
-    const rows = sheet.getDataRange().getValues();
-    for (let i = rows.length - 1; i >= 1; i--) if (String(rows[i][0]) === String(p.id||'')) { sheet.deleteRow(i+1); return jsonOut({ ok: true }); }
-    return jsonOut({ ok: false });
-  }
-  if (p.action === 'visibility') {
-    const tid = String(p.id||'').trim();
-    const vis = String(p.visibility||'HIDDEN').toUpperCase();
-    const rows = sheet.getDataRange().getValues();
-    for (let i = 1; i < rows.length; i++) if (String(rows[i][0]) === tid) { sheet.getRange(i+1,19).setValue(vis); return jsonOut({ ok: true, id: tid }); }
-    sheet.appendRow([tid,'',String(p.nodeCode||'01'),'','','','',100,String(p.title||tid),'','','','','','','','FALSE',new Date().toISOString(),vis]);
-    return jsonOut({ ok: true, id: tid });
-  }
-  const ex = p.exhibit || {};
-  const id = String(ex.id || 'cms-' + Date.now());
-  const vis = String(p.visibility || 'TRUE').toUpperCase();
-  const vals = [id,'',String(ex.nodeCode||'03'),'','external','',String(ex.status||'מוצר חי'),100,String(ex.title||''),String(ex.summary||''),'',Array.isArray(ex.techTags)?ex.techTags.join(', '):'',String(ex.url||''),String(ex.actionLabel||'צפה בדמו ↗'),'','',ex.nodeCode==='03'?'TRUE':'FALSE',new Date().toISOString(),vis];
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) if (String(rows[i][0]) === id) { sheet.getRange(i+1,1,1,vals.length).setValues([vals]); return jsonOut({ ok: true, id }); }
-  sheet.appendRow(vals);
-  return jsonOut({ ok: true, id });
-}`;
-
 export function StudioAdminPanel({
   onGoHome,
   onOpenDomain,
@@ -141,12 +84,10 @@ export function StudioAdminPanel({
   // Sheet inbox state (strictly read-only preview until Rafael clicks Approve!)
   const [sheetRows, setSheetRows] = useState<SheetInboxRow[]>([]);
   const [sheetLoading, setSheetLoading] = useState(false);
-  const [sheetConnected, setSheetConnected] = useState(false);
+  const [sheetReadConnected, setSheetReadConnected] = useState(false);
+  const [sheetWriteConfigured, setSheetWriteConfigured] = useState(false);
+  const [sheetConnectionError, setSheetConnectionError] = useState<string | null>(null);
   const [sheetSearch, setSheetSearch] = useState('');
-
-  // Script URL
-  const [scriptUrlInput, setScriptUrlInput] = useState(() => getSavedSheetScriptUrl());
-  const [copiedScript, setCopiedScript] = useState(false);
 
   const [saving, setSaving] = useState(false);
   const [toast, setToast] = useState<{ text: string; domainId?: string } | null>(null);
@@ -168,9 +109,11 @@ export function StudioAdminPanel({
 
   const loadSheetInbox = async () => {
     setSheetLoading(true);
-    const res = await refreshExhibitsFromServer(true);
+    const res = await refreshExhibitsFromServer(true, session);
     setSheetRows(res.sheetInbox);
-    setSheetConnected(res.sheetConnected);
+    setSheetReadConnected(res.sheetConnected);
+    setSheetWriteConfigured(res.writeConfigured);
+    setSheetConnectionError(res.error ?? null);
     setSheetLoading(false);
   };
 
@@ -371,7 +314,7 @@ export function StudioAdminPanel({
                 <span>לוח בקרה פרטי · {STUDIO_OWNER_NAME} בלבד (נסתר משאר המשתמשים)</span>
               </div>
               <div className="text-[11px] text-[#cfd8ea]">
-                שום תוכן לא עולה לאתר מעצמו — רק מה שאתה מאשר כאן או מסמן TRUE בלשונית Studio_CMS.
+                שום תוכן לא עולה לאתר מעצמו — רק אישור סופי שלך בלוח הבקרה מפרסם אותו.
               </div>
             </div>
           </div>
@@ -854,69 +797,61 @@ export function StudioAdminPanel({
             </CrystalCard3D>
           )}
 
-          {/* לשונית 4: חיבור כתיבה דו-כיוונית לגיליון */}
+          {/* לשונית 4: מצב החיבור המרכזי */}
           {activeTab === 'connect' && (
             <CrystalCard3D hue="gold" interactive={false} className="w-full">
               <div className="flex flex-col gap-4 p-5">
-                <div className="flex flex-wrap items-center justify-between gap-2">
+                <div className="flex flex-wrap items-center justify-between gap-3">
                   <div>
-                    <h2 className="text-base font-bold text-white">
-                      סנכרון דו-כיווני עם הגיליון שלך ({STUDIO_OWNER_EMAIL})
-                    </h2>
-                    <p className="mt-0.5 text-xs text-[#cfd8ea]">
-                      קריאה מלשונית <code dir="ltr">Studio_CMS</code> כבר עובדת אוטומטית (ורק שורות שמסומנות <code dir="ltr">TRUE</code> בעמודת <code dir="ltr">מוצג_באתר</code> מופיעות באתר). לכתיבה אוטומטית מהאתר אל הגיליון, הדבק את כתובת ה-Web App של Apps Script:
+                    <h2 className="text-base font-bold text-white">חיבור מרכזי לאתר ולגיליון</h2>
+                    <p className="mt-1 max-w-3xl text-xs leading-6 text-[#cfd8ea]">
+                      כתובת החיבור והסודות מוגדרים בשרת Vercel בלבד. שמירת קישור בדפדפן אינה מחברת את האתר לכל המשתמשים.
+                      פריטים מהגיליון נשארים בתיבת הבדיקה; רק אישור שלך בלוח הבקרה מעביר פריט לפרסום.
                     </p>
                   </div>
-                  <span
-                    className={`rounded-full border px-3 py-1 text-xs font-bold ${
-                      sheetConnected
-                        ? 'border-emerald-400/55 bg-emerald-500/20 text-emerald-200'
-                        : 'border-amber-400/45 bg-amber-500/15 text-amber-200'
-                    }`}
-                  >
-                    {sheetConnected ? 'כתיבה ישירה לגיליון מחוברת ✓' : 'קריאה חיה פעילה'}
+                  <span className={`rounded-full border px-3 py-1 text-xs font-bold ${
+                    sheetReadConnected && sheetWriteConfigured
+                      ? 'border-emerald-400/55 bg-emerald-500/20 text-emerald-200'
+                      : 'border-amber-400/45 bg-amber-500/15 text-amber-200'
+                  }`}>
+                    {sheetReadConnected && sheetWriteConfigured
+                      ? 'שרת הגיליון מחובר לקריאה ולכתיבה'
+                      : sheetReadConnected
+                        ? 'קריאה פעילה · הגדרת כתיבה חסרה'
+                        : 'החיבור המרכזי טרם אומת'}
                   </span>
                 </div>
 
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    saveSheetScriptUrl(scriptUrlInput);
-                    await loadSheetInbox();
-                    setToast({ text: 'כתובת ה-Apps Script נשמרה ונבדקה.' });
-                  }}
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  <input
-                    type="url"
-                    dir="ltr"
-                    value={scriptUrlInput}
-                    onChange={(e) => setScriptUrlInput(e.target.value)}
-                    placeholder="https://script.google.com/macros/s/.../exec"
-                    className="min-w-[260px] flex-1 rounded-xl border border-white/18 bg-white/[0.04] px-3.5 py-2 text-left text-xs text-white placeholder-[#8e9bb2] outline-none focus:border-emerald-400/60"
-                  />
-                  <CrystalButton hue="cyan" size="sm" type="submit">
-                    <Check className="h-3.5 w-3.5" />
-                    <span>שמור ובדוק</span>
-                  </CrystalButton>
-                  <CrystalButton
-                    hue="gold"
-                    size="sm"
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(APPS_SCRIPT_CODE);
-                        setCopiedScript(true);
-                        setTimeout(() => setCopiedScript(false), 2400);
-                      } catch {
-                        // ignore
-                      }
-                    }}
+                {sheetConnectionError && (
+                  <div role="status" className="rounded-xl border border-amber-400/35 bg-amber-500/10 px-3 py-2 text-xs text-amber-100">
+                    {sheetConnectionError}
+                  </div>
+                )}
+
+                <div className="flex flex-wrap gap-2">
+                  <a
+                    href={STUDIO_CMS_TAB_URL}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/[0.05] px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/10"
                   >
-                    {copiedScript ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                    <span>{copiedScript ? 'קוד ה-Apps Script הועתק!' : 'העתק קוד Apps Script'}</span>
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    פתח את Studio_CMS
+                  </a>
+                  <a
+                    href="https://github.com/rafia22110/DUPAMAN-Digital-Product-Studio/blob/main/apps-script/README.md"
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center gap-2 rounded-xl border border-white/20 bg-white/[0.05] px-3.5 py-2 text-xs font-semibold text-white hover:bg-white/10"
+                  >
+                    <ExternalLink className="h-3.5 w-3.5" />
+                    הוראות חיבור השרת
+                  </a>
+                  <CrystalButton hue="cyan" size="sm" type="button" onClick={() => void loadSheetInbox()}>
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    <span>בדוק חיבור מחדש</span>
                   </CrystalButton>
-                </form>
+                </div>
               </div>
             </CrystalCard3D>
           )}
