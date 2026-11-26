@@ -31,6 +31,8 @@ export interface SheetInboxRow {
   siteApproval?: string;
   suggestedNodeCode: StudioExhibitSample['nodeCode'];
   suggestedTags?: string[];
+  cardTemplate?: string;
+  previewUrl?: string;
 }
 
 export interface SheetTagEntry {

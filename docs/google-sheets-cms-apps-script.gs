@@ -151,6 +151,8 @@ function handleGetInbox_(ss) {
           stage: rec.reviewState || 'נדרש אימות בעלים',
           siteApproval: 'לא אושר באתר',
           nodeCode: rec.nodeCode || '',
+          cardTemplate: rec.cardTemplate || '',
+          previewUrl: rec.previewUrl || '',
         });
       }
     }
@@ -183,6 +185,8 @@ function handleGetInbox_(ss) {
           stage: cellVal_(row, cCols.stage) || 'קליטה',
           siteApproval: cellVal_(row, cCols.siteApproval) || 'לא אושר באתר',
           nodeCode: '',
+          cardTemplate: cellVal_(row, cCols.cardTemplate),
+          previewUrl: cellVal_(row, cCols.previewUrl),
         });
       }
     }
@@ -232,6 +236,10 @@ function handleAssetMutation_(ss, payload, action) {
   }
   if (findHeader_(headers, ['תווית כפתור', 'liveLabel', 'live label', 'תווית קישור']) < 0) {
     headers.push('תווית כפתור');
+    headerChanged = true;
+  }
+  if (findHeader_(headers, ['תבנית כרטיסייה', 'cardTemplate', 'card template']) < 0) {
+    headers.push('תבנית כרטיסייה');
     headerChanged = true;
   }
   if (headerChanged) {
@@ -296,6 +304,7 @@ function handleAssetMutation_(ss, payload, action) {
     );
     setCell_(row, columns.liveUrl, exhibit.url || exhibit.liveUrl || '');
     setCell_(row, columns.liveLabel, exhibit.actionLabel || exhibit.liveLabel || '');
+    if (exhibit.cardTemplate) setCell_(row, columns.cardTemplate, exhibit.cardTemplate);
     if (exhibit.githubUrl) setCell_(row, columns.githubUrl, exhibit.githubUrl);
     if (exhibit.audienceNote) setCell_(row, columns.audienceNote, exhibit.audienceNote);
     if (exhibit.nodeCode === '03' || exhibit.isEducational === true) {
@@ -407,6 +416,8 @@ function getAssetColumns_(headers) {
     audienceNote: findHeader_(headers, ['קהל יעד', 'audienceNote', 'audience note']),
     isEducational: findHeader_(headers, ['חינוכי', 'isEducational', 'is educational']),
     updatedAt: findHeader_(headers, ['עודכן במקור', 'עודכן בתאריך', 'updatedAt', 'updated at']),
+    previewUrl: findHeader_(headers, ['תצוגה מקדימה', 'previewUrl', 'preview']),
+    cardTemplate: findHeader_(headers, ['תבנית כרטיסייה', 'cardTemplate', 'card template']),
     reviewState: findHeader_(headers, ['מצב בדיקה חדש', 'מצב בדיקה']),
     visibility: findHeader_(headers, ['אישור באתר', 'מוצג באתר', 'מוצג בכרטיס', 'פרסום באתר', 'visibility', 'נראות']),
     sourceRef: findHeader_(headers, ['מקור ושורה']),
@@ -430,6 +441,8 @@ function getContentColumns_(headers) {
     url: findHeader_(headers, ['קישור מקור', 'קישור', 'url']),
     stage: findHeader_(headers, ['שלב עבודה', 'stage']),
     siteApproval: findHeader_(headers, ['אישור באתר', 'visibility']),
+    cardTemplate: findHeader_(headers, ['תבנית כרטיסייה', 'cardTemplate', 'card template']),
+    previewUrl: findHeader_(headers, ['תצוגה מקדימה', 'previewUrl', 'preview']),
   };
 }
 
@@ -453,6 +466,8 @@ function assetRowToRecord_(row, columns) {
     isEducational: cellVal_(row, columns.isEducational),
     status: cellVal_(row, columns.status),
     reviewState: cellVal_(row, columns.reviewState),
+    cardTemplate: cellVal_(row, columns.cardTemplate),
+    previewUrl: cellVal_(row, columns.previewUrl),
     visibility: normalizeVisibility_(cellVal_(row, columns.visibility)),
     updatedAt: cellVal_(row, columns.updatedAt),
   };

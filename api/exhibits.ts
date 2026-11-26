@@ -69,6 +69,16 @@ function normalizeVisibility(val: unknown): 'TRUE' | 'FALSE' | 'HIDDEN' {
   return 'FALSE';
 }
 
+function defaultCardTemplate(nodeCode: StudioExhibitSample['nodeCode'], hint = ''): string {
+  const h = hint.toLowerCase();
+  if (h.includes('סט 2') || h.includes('daylight') || h.includes('crystal')) return 'סט 2 · Daylight Crystal';
+  if (h.includes('סט 3') || h.includes('investor') || h.includes('vault') || h.includes('1m')) return 'סט 3 · $1M Investor Vault';
+  if (h.includes('סט 1') || h.includes('dark glass')) return 'סט 1 · Studio Dark Glass';
+  if (nodeCode === '03') return 'סט 2 · Daylight Crystal';
+  if (nodeCode === '06') return 'סט 3 · $1M Investor Vault';
+  return 'סט 1 · Studio Dark Glass';
+}
+
 function normalizeCmsRow(raw: Record<string, unknown>): {
   exhibit: StudioExhibitSample | null;
   id: string;
@@ -106,6 +116,11 @@ function normalizeCmsRow(raw: Record<string, unknown>): {
   const actionLabel = String(
     raw.liveLabel ?? raw.actionLabel ?? raw['תווית כפתור'] ?? (url ? 'צפה בדמו ↗' : 'פתח בבוט')
   ).trim();
+  const cardTemplate = defaultCardTemplate(
+    nodeCode,
+    String(raw.cardTemplate ?? raw['תבנית כרטיסייה'] ?? '')
+  );
+  const previewUrl = String(raw.previewUrl ?? raw['תצוגה מקדימה'] ?? '').trim();
 
   return {
     id,
@@ -124,6 +139,8 @@ function normalizeCmsRow(raw: Record<string, unknown>): {
       actionLabel: url && !actionLabel.includes('↗') ? `${actionLabel} ↗` : actionLabel,
       url: url || undefined,
       botPrompt: `האר לי את ${nodeCode} — ${title}`,
+      cardTemplate,
+      previewUrl: previewUrl || undefined,
     },
   };
 }
@@ -236,6 +253,8 @@ export default async function handler(req: VercelReq, res: VercelRes) {
       siteApproval: string;
       suggestedNodeCode: StudioExhibitSample['nodeCode'];
       suggestedTags: string[];
+      cardTemplate: string;
+      previewUrl: string;
     }> = [];
     let tagDictionary: Array<{
       group: string;
@@ -298,6 +317,11 @@ export default async function handler(req: VercelReq, res: VercelRes) {
                     [title, topic, subtopic, summary],
                     String(item.tags || '')
                   ),
+                  cardTemplate: defaultCardTemplate(
+                    suggestedNodeCode,
+                    String(item.cardTemplate || '')
+                  ),
+                  previewUrl: String(item.previewUrl || ''),
                 };
               });
             }

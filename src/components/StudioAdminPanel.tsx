@@ -61,6 +61,40 @@ const NODE_OPTIONS: Array<{
   { code: '06', domainId: 'brain-bottom-right', label: '06 · חדר המיזמים', hue: 'gold' },
 ];
 
+const CARD_TEMPLATE_OPTIONS = [
+  'סט 1 · Studio Dark Glass',
+  'סט 2 · Daylight Crystal',
+  'סט 3 · $1M Investor Vault',
+] as const;
+
+function getTemplateStyle(template: string) {
+  if (template.includes('סט 2') || template.includes('Daylight')) {
+    return {
+      card: 'border-sky-300/60 bg-gradient-to-br from-[#eef7ff] via-[#ffffff] to-[#e0f2fe] text-[#0f172a] shadow-[0_12px_32px_rgba(56,189,248,0.22)]',
+      badge: 'border-sky-500/40 bg-sky-500/15 text-sky-900',
+      summary: 'text-slate-700',
+      tag: 'border-slate-300 bg-white/80 text-slate-800',
+      cta: 'bg-sky-600 text-white',
+    };
+  }
+  if (template.includes('סט 3') || template.includes('Investor')) {
+    return {
+      card: 'border-[#f5c85b]/65 bg-gradient-to-br from-[#161108] via-[#0c0a06] to-[#1d1507] text-[#fff8e7] shadow-[0_14px_38px_rgba(245,200,91,0.2)]',
+      badge: 'border-[#f5c85b]/50 bg-[#f5c85b]/15 text-[#fce29a]',
+      summary: 'text-[#e7dcc4]',
+      tag: 'border-[#f5c85b]/30 bg-[#f5c85b]/10 text-[#fde7ae]',
+      cta: 'bg-gradient-to-r from-[#f5c85b] to-[#d99b26] text-[#140e04] font-bold',
+    };
+  }
+  return {
+    card: 'border-[#84e8ff]/40 bg-gradient-to-br from-[#0b1324]/95 via-[#070b14]/95 to-[#0b1628]/95 text-[#f3f5fa] shadow-[0_14px_38px_rgba(72,214,252,0.16)]',
+    badge: 'border-[#84e8ff]/40 bg-[#48d6fc]/15 text-[#c8f5ff]',
+    summary: 'text-[#cfd8ea]',
+    tag: 'border-white/15 bg-white/[0.06] text-[#dbe7f8]',
+    cta: 'border border-[#84e8ff]/50 bg-[#48d6fc]/20 text-white',
+  };
+}
+
 export function StudioAdminPanel({
   onGoHome,
   onOpenDomain,
@@ -76,6 +110,7 @@ export function StudioAdminPanel({
 
   // Form state
   const [nodeCode, setNodeCode] = useState<StudioExhibitSample['nodeCode']>('03');
+  const [cardTemplate, setCardTemplate] = useState<string>(CARD_TEMPLATE_OPTIONS[0]);
   const [statusLabel, setStatusLabel] = useState('מוצר חי');
   const [title, setTitle] = useState('');
   const [summary, setSummary] = useState('');
@@ -166,6 +201,7 @@ export function StudioAdminPanel({
 
   const resetForm = () => {
     setEditingId(null);
+    setCardTemplate(CARD_TEMPLATE_OPTIONS[0]);
     setTitle('');
     setSummary('');
     setUrl('');
@@ -258,6 +294,7 @@ export function StudioAdminPanel({
       actionLabel: cleanUrl ? actionLabel.trim() || 'צפה בדמו ↗' : 'פתח בבוט',
       url: cleanUrl || undefined,
       botPrompt: `האר לי את ${dom?.title || ''} — ${title.trim()}`,
+      cardTemplate,
     };
 
     const res = await upsertStudioExhibit(exhibit, session);
@@ -277,6 +314,7 @@ export function StudioAdminPanel({
   const handleEditExhibit = (ex: StudioExhibitSample) => {
     setEditingId(ex.id);
     setNodeCode(ex.nodeCode);
+    setCardTemplate(ex.cardTemplate || CARD_TEMPLATE_OPTIONS[0]);
     setStatusLabel(ex.status);
     setTitle(ex.title);
     setSummary(ex.summary);
@@ -289,6 +327,7 @@ export function StudioAdminPanel({
   const handleLoadSheetRowIntoEditor = (row: SheetInboxRow) => {
     setEditingId(row.id);
     setNodeCode(row.suggestedNodeCode);
+    setCardTemplate(row.cardTemplate || CARD_TEMPLATE_OPTIONS[0]);
     setStatusLabel(row.contentType || (row.tabLabel.includes('מאמר') ? 'מאמר' : 'מוכן להפעלה'));
     setTitle(row.title);
     setSummary(row.summary);
@@ -301,7 +340,7 @@ export function StudioAdminPanel({
     setTagsInput(suggested);
     setActiveTab('create');
     setToast({
-      text: 'נטען לעריכה שלך — בדוק את הפרטים והתגיות ולחץ "אשר והצג באתר" רק כשתרצה לפרסם.',
+      text: 'נטען לעריכה שלך — בדוק את התצוגה המקדימה ותבנית הכרטיסייה לפני אישור.',
     });
   };
 
@@ -669,7 +708,7 @@ export function StudioAdminPanel({
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
+                  <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-3">
                     <div>
                       <label className="mb-1 block text-[11px] font-semibold text-[#cfd8ea]">
                         בחר צומת באתר *
@@ -687,8 +726,24 @@ export function StudioAdminPanel({
                       </select>
                     </div>
                     <div>
+                      <label className="mb-1 block text-[11px] font-semibold text-[#f8d478]">
+                        תבנית כרטיסייה *
+                      </label>
+                      <select
+                        value={cardTemplate}
+                        onChange={(e) => setCardTemplate(e.target.value)}
+                        className="w-full rounded-xl border border-[#f8d478]/45 bg-[#0b101d] px-3 py-2 text-xs text-white outline-none focus:border-[#f8d478]"
+                      >
+                        {CARD_TEMPLATE_OPTIONS.map((tpl) => (
+                          <option key={tpl} value={tpl}>
+                            {tpl}
+                          </option>
+                        ))}
+                      </select>
+                    </div>
+                    <div>
                       <label className="mb-1 block text-[11px] font-semibold text-[#cfd8ea]">
-                        תגית סטטוס (למשל: מוצר חי / מאמר / מערך שיעור)
+                        תגית סטטוס
                       </label>
                       <input
                         type="text"
@@ -788,6 +843,53 @@ export function StudioAdminPanel({
                     </div>
                   </div>
 
+                  {/* תצוגה מקדימה חיה של הכרטיסייה לפני אישור */}
+                  {(() => {
+                    const tplStyle = getTemplateStyle(cardTemplate);
+                    const previewTags = tagsInput
+                      .split(',')
+                      .map((t) => t.trim())
+                      .filter(Boolean)
+                      .slice(0, 3);
+                    return (
+                      <div className="mt-1">
+                        <div className="mb-1.5 flex items-center justify-between text-[11px] font-semibold text-[#f8d478]">
+                          <span>תצוגה מקדימה חיה לפני אישור</span>
+                          <span className="text-[10px] opacity-85">{cardTemplate}</span>
+                        </div>
+                        <div className={`rounded-2xl border p-4 transition-all ${tplStyle.card}`}>
+                          <div className="flex items-center justify-between gap-2 text-[10px]">
+                            <span className={`rounded-full border px-2 py-0.5 font-semibold ${tplStyle.badge}`}>
+                              צומת {nodeCode} · {statusLabel || 'מוצר חי'}
+                            </span>
+                            <span className="opacity-70">{cardTemplate.split('·')[0].trim()}</span>
+                          </div>
+                          <div className="mt-2 text-sm font-bold">
+                            {title.trim() || 'כותרת הכרטיסייה תופיע כאן...'}
+                          </div>
+                          <p className={`mt-1 line-clamp-2 text-xs leading-relaxed ${tplStyle.summary}`}>
+                            {summary.trim() || 'תיאור תמציתי של התוכן או הפעילות יוצג כאן לפני הפרסום.'}
+                          </p>
+                          <div className="mt-3 flex flex-wrap items-center justify-between gap-2">
+                            <div className="flex flex-wrap gap-1">
+                              {(previewTags.length ? previewTags : ['DUPAMAN', 'Studio']).map((t) => (
+                                <span
+                                  key={t}
+                                  className={`rounded-md border px-2 py-0.5 text-[10px] ${tplStyle.tag}`}
+                                >
+                                  {t}
+                                </span>
+                              ))}
+                            </div>
+                            <span className={`rounded-lg px-2.5 py-1 text-[10px] font-semibold ${tplStyle.cta}`}>
+                              {url.trim() ? actionLabel.trim() || 'צפה בדמו ↗' : 'פתח בבוט'}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  })()}
+
                   <div className="flex items-center gap-2 pt-2">
                     <CrystalButton
                       hue="gold"
@@ -870,9 +972,16 @@ export function StudioAdminPanel({
                       >
                         <div>
                           <div className="flex flex-wrap items-center justify-between gap-1.5 text-[10px]">
-                            <span className="rounded-md border border-[#84e8ff]/35 bg-[#48d6fc]/12 px-2 py-0.5 font-semibold text-[#dcf8ff]">
-                              {row.tabLabel} · צומת מוצע {row.suggestedNodeCode}
-                            </span>
+                            <div className="flex flex-wrap items-center gap-1.5">
+                              <span className="rounded-md border border-[#84e8ff]/35 bg-[#48d6fc]/12 px-2 py-0.5 font-semibold text-[#dcf8ff]">
+                                {row.tabLabel} · צומת {row.suggestedNodeCode}
+                              </span>
+                              {row.cardTemplate && (
+                                <span className="rounded-md border border-[#f8d478]/45 bg-[#f2be4e]/15 px-2 py-0.5 font-semibold text-[#ffe8a3]">
+                                  {row.cardTemplate}
+                                </span>
+                              )}
+                            </div>
                             <span
                               className={
                                 row.siteApproval === 'מאושר באתר'

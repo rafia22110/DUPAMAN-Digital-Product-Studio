@@ -12,6 +12,8 @@ export interface StudioExhibitSample {
   actionLabel: string;
   url?: string;
   botPrompt?: string;
+  cardTemplate?: string;
+  previewUrl?: string;
 }
 
 export const STUDIO_EXHIBITS: StudioExhibitSample[] = [
