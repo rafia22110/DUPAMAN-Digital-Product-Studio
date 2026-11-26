@@ -70,17 +70,50 @@ function parseCsvRows(csvText: string): string[][] {
   return rows;
 }
 
+function normalizeSheetHeader(value: string): string {
+  return value.toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, ' ').trim();
+}
+
+function findColumn(headers: string[], aliases: string[]): number {
+  const normalized = headers.map(normalizeSheetHeader);
+  const terms = aliases.map(normalizeSheetHeader);
+  return normalized.findIndex((header) => terms.some((term) => header === term || header.includes(term)));
+}
+
+function cellAt(cols: string[], index: number, fallbackIndex: number): string {
+  return (cols[index >= 0 ? index : fallbackIndex] || '').trim();
+}
+
 function mapTopicToNodeCode(topicRaw: string): StudioExhibitSample['nodeCode'] {
   const t = topicRaw.trim().toLowerCase();
   if (t.includes('01') || t.includes('ממשק') || t.includes('agentic')) return '01';
-  if (t.includes('02 מוח') || t === 'ai' || t.includes('בינה') || t.includes('סוכנ')) return '02';
-  if (t.includes('03 למידה') || t.includes('02 חינוך') || t.includes('חינוך') || t.includes('למיד') || t.includes('כיתה') || t.includes('חנוכה')) return '03';
-  if (t.includes('04 אדריכלות') || t.includes('neuro') || t.includes('קשב') || t.includes('פסיכולוג') || t.includes('adhd')) return '04';
-  if (t.includes('05 רוח') || t.includes('רוח') || t.includes('מקור') || t.includes('רמב') || t.includes('תודעה') || t.includes('physics') || t.includes('astronomy')) return '05';
-  if (t.includes('06') || t.includes('health') || t.includes('מיזם') || t.includes('bio-oracle') || t.includes('רפוא')) return '06';
+  if (t.includes('02') || t === 'ai' || t.includes('בינה') || t.includes('סוכנ') || t.includes('מודל שפה')) return '02';
+  if (t.includes('03') || t.includes('חינוך') || t.includes('למיד') || t.includes('כיתה') || t.includes('הוראה') || t.includes('edtech')) return '03';
+  if (t.includes('04') || t.includes('קשב') || t.includes('פסיכולוג') || t.includes('adhd') || t.includes('neuro') || t.includes('בריאות') || t.includes('חוסן')) return '04';
+  if (t.includes('05') || t.includes('רוח') || t.includes('מקור') || t.includes('רמב') || t.includes('תודעה') || t.includes('היסטור') || t.includes('יהדות') || t.includes('מורשת') || t.includes('פילוסופ')) return '05';
+  if (t.includes('06') || t.includes('מדע') || t.includes('physics') || t.includes('פיזיק') || t.includes('astronomy') || t.includes('אסטרונומ') || t.includes('מיזם') || t.includes('bio-oracle') || t.includes('רפוא')) return '06';
   return '02';
 }
 
+const TAG_SUGGESTIONS: Array<[string, string[]]> = [
+  ['בינה מלאכותית', ['בינה מלאכותית', 'ai', 'סוכן', 'llm', 'מודל שפה', 'אוטומציה', 'rag']],
+  ['למידה וחינוך', ['חינוך', 'למידה', 'הוראה', 'כיתה', 'מדריך', 'קורס', 'edtech', 'תלמיד']],
+  ['פסיכולוגיה ובריאות', ['פסיכולוג', 'בריאות', 'רגשי', 'חוסן', 'adhd', 'אוטיזם', 'רפואה']],
+  ['מדעי המוח וקשב', ['מדעי המוח', 'נוירו', 'קוגניציה', 'דופמין', 'קשב', 'eeg', 'מלטונין']],
+  ['היסטוריה ומורשת', ['היסטור', 'יהדות', 'מורשת', 'רמב', 'ליבוביץ', 'תנך', 'תושב']],
+  ['מדע וטכנולוגיה', ['מדע', 'פיזיק', 'אסטרונומ', 'חלל', 'כימיה', 'גיאומטריה', 'חשמל']],
+  ['יזמות וחדשנות', ['מיזם', 'יזמות', 'סטארט', 'חדשנות', 'משקיע', 'מוצר']],
+];
+
+function suggestArticleTags(values: string[], sourceTags: string): string[] {
+  const supplied = sourceTags.split(/[,;|\\n]+/).map((tag) => tag.trim()).filter(Boolean);
+  const haystack = values.join(' ').toLowerCase();
+  const inferred = TAG_SUGGESTIONS.filter(([, keywords]) =>
+    keywords.some((keyword) => haystack.includes(keyword))
+  ).map(([tag]) => tag);
+  const combined = [...supplied, ...values.filter(Boolean), ...inferred, 'מאמר'];
+  return Array.from(new Set(combined.map((tag) => tag.trim()).filter(Boolean))).slice(0, 12);
+}
 function normalizeCmsRow(raw: Record<string, unknown>): {
   exhibit: StudioExhibitSample | null;
   id: string;
@@ -282,23 +315,43 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         );
         if (artRes.ok) {
           const parsed = parseCsvRows(await artRes.text());
-          parsed.slice(1, 51).forEach((cols, idx) => {
-            const title = (cols[1] || '').trim();
-            if (!title) return;
-            const topic = (cols[2] || '').trim();
-            const subtopic = (cols[3] || '').trim();
-            sheetInbox.push({
-              id: `sheet-art-${idx + 2}`,
-              tabLabel: 'לשונית מאמרים',
-              rowIndex: idx + 2,
-              date: (cols[0] || '').trim(),
-              title,
-              topic: subtopic || topic,
-              summary: (cols[5] || subtopic || title).trim(),
-              url: (cols[10] || '').trim(),
-              suggestedNodeCode: mapTopicToNodeCode(`${topic} ${subtopic}`),
+          const rows = parsed;
+          if (rows.length > 1) {
+            const headers = rows[0].map((value) => value.trim());
+            const titleCol = findColumn(headers, ['title', 'headline', 'blog title', 'article title', 'כותרת', 'כותרת הכתבה', 'כותרת המאמר', 'שם הכתבה', 'שם המאמר']);
+            const headerRow = titleCol >= 0;
+            const columns = {
+              date: headerRow ? findColumn(headers, ['date', 'published at', 'published date', 'תאריך', 'תאריך פרסום']) : -1,
+              title: headerRow ? titleCol : 1,
+              topic: headerRow ? findColumn(headers, ['topic', 'category', 'subject', 'תחום', 'נושא', 'קטגוריה']) : 2,
+              subtopic: headerRow ? findColumn(headers, ['subtopic', 'subcategory', 'sub topic', 'תת נושא', 'תת נושא', 'תת קטגוריה']) : 3,
+              summary: headerRow ? findColumn(headers, ['summary', 'excerpt', 'description', 'abstract', 'תקציר', 'סיכום', 'תיאור', 'תמצית']) : 5,
+              tags: headerRow ? findColumn(headers, ['tags', 'keywords', 'תגיות', 'תגים', 'מילות מפתח']) : -1,
+              url: headerRow ? findColumn(headers, ['url', 'link', 'source url', 'קישור', 'לינק', 'כתובת']) : 10,
+            };
+            const firstDataRow = headerRow ? 1 : 0;
+            rows.slice(firstDataRow).forEach((cols, idx) => {
+              const title = cellAt(cols, columns.title, 1);
+              if (!title) return;
+              const topic = cellAt(cols, columns.topic, 2);
+              const subtopic = cellAt(cols, columns.subtopic, 3);
+              const summary = cellAt(cols, columns.summary, 5) || title;
+              const tags = suggestArticleTags([title, topic, subtopic, summary], cellAt(cols, columns.tags, -1));
+              const sheetRowNumber = idx + firstDataRow + 1;
+              sheetInbox.push({
+                id: `sheet-art-${sheetRowNumber}`,
+                tabLabel: 'לשונית מאמרים',
+                rowIndex: sheetRowNumber,
+                date: cellAt(cols, columns.date, 0),
+                title,
+                topic: subtopic || topic,
+                summary,
+                url: cellAt(cols, columns.url, 10),
+                suggestedNodeCode: mapTopicToNodeCode(`${topic} ${subtopic} ${title}`),
+                suggestedTags: tags,
+              });
             });
-          });
+          }
         }
       } catch {
         // ignore
