@@ -3,15 +3,10 @@ import { STUDIO_EXHIBITS, type StudioExhibitSample } from './studioSamples';
 
 export const STUDIO_OWNER_EMAIL = 'rafiargsnti221169@gmail.com';
 export const STUDIO_OWNER_NAME = 'רפאל ארגנטי';
-export const STUDIO_SHEET_URL =
-  'https://docs.google.com/spreadsheets/d/1ypSdymFV-oufB1YEKzNii9uvm05FwdmzN8K0fBkZxKI/edit?gid=445464849#gid=445464849';
-export const STUDIO_CMS_TAB_URL =
-  'https://docs.google.com/spreadsheets/d/1ypSdymFV-oufB1YEKzNii9uvm05FwdmzN8K0fBkZxKI/edit?gid=326580483#gid=326580483';
+export const STUDIO_SHEET_ID = '1bg7IQTV2QLhiOfN4Dex755wURn4jt7yfMOPLRqDx2u8';
+export const STUDIO_SHEET_URL = `https://docs.google.com/spreadsheets/d/${STUDIO_SHEET_ID}/edit`;
 
 export const AUTH_STORAGE_KEY = 'dupaman_user_session_v1';
-const LOCAL_CMS_EXHIBITS_KEY = 'dupaman_owner_cms_exhibits_v2';
-const LOCAL_HIDDEN_IDS_KEY = 'dupaman_owner_hidden_ids_v2';
-const LOCAL_SCRIPT_URL_KEY = 'dupaman_owner_sheet_script_url_v1';
 const EXHIBITS_UPDATED_EVENT = 'dupaman_exhibits_updated';
 const AUTH_UPDATED_EVENT = 'dupaman_auth_updated';
 
@@ -27,11 +22,30 @@ export interface SheetInboxRow {
   tabLabel: string;
   rowIndex: number;
   date: string;
+  contentType?: string;
   title: string;
   topic: string;
   summary: string;
   url: string;
+  stage?: string;
+  siteApproval?: string;
   suggestedNodeCode: StudioExhibitSample['nodeCode'];
+  suggestedTags?: string[];
+}
+
+export interface SheetTagEntry {
+  group: string;
+  tag: string;
+  definition: string;
+  usage: string;
+  status: string;
+}
+
+export interface SheetCounts {
+  assets: number;
+  content: number;
+  tags: number;
+  channels: number;
 }
 
 let cachedServerExhibits: StudioExhibitSample[] | null = null;
@@ -91,133 +105,87 @@ export function useOwnerSession(): StoredUserSession | null {
   return session;
 }
 
-export function getSavedSheetScriptUrl(): string {
-  if (typeof window === 'undefined') return '';
-  try {
-    return localStorage.getItem(LOCAL_SCRIPT_URL_KEY) || '';
-  } catch {
-    return '';
-  }
-}
-
-export function saveSheetScriptUrl(url: string): void {
-  if (typeof window === 'undefined') return;
-  try {
-    const trimmed = url.trim();
-    if (trimmed) localStorage.setItem(LOCAL_SCRIPT_URL_KEY, trimmed);
-    else localStorage.removeItem(LOCAL_SCRIPT_URL_KEY);
-  } catch {
-    // ignore
-  }
-}
-
-export function getLocalCustomExhibits(): StudioExhibitSample[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(LOCAL_CMS_EXHIBITS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as StudioExhibitSample[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function setLocalCustomExhibits(list: StudioExhibitSample[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(LOCAL_CMS_EXHIBITS_KEY, JSON.stringify(list));
-  } catch {
-    // ignore
-  }
-  window.dispatchEvent(new CustomEvent(EXHIBITS_UPDATED_EVENT));
-}
-
-export function getLocalHiddenIds(): string[] {
-  if (typeof window === 'undefined') return [];
-  try {
-    const raw = localStorage.getItem(LOCAL_HIDDEN_IDS_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    return Array.isArray(parsed) ? (parsed as string[]) : [];
-  } catch {
-    return [];
-  }
-}
-
-function setLocalHiddenIds(ids: string[]): void {
-  if (typeof window === 'undefined') return;
-  try {
-    localStorage.setItem(LOCAL_HIDDEN_IDS_KEY, JSON.stringify(Array.from(new Set(ids))));
-  } catch {
-    // ignore
-  }
-  window.dispatchEvent(new CustomEvent(EXHIBITS_UPDATED_EVENT));
-}
-
 export function getHiddenExhibitIds(): Set<string> {
-  return new Set([...cachedServerHiddenIds, ...getLocalHiddenIds()]);
+  return new Set(cachedServerHiddenIds);
 }
 
 export function getActiveStudioExhibits(): StudioExhibitSample[] {
   const hidden = getHiddenExhibitIds();
-  const map = new Map<string, StudioExhibitSample>();
-
-  for (const ex of getLocalCustomExhibits()) {
-    if (!hidden.has(ex.id)) {
-      map.set(ex.id, ex);
-    }
-  }
-
   const baseSource = cachedServerExhibits ?? STUDIO_EXHIBITS;
-  for (const ex of baseSource) {
-    if (!hidden.has(ex.id) && !map.has(ex.id)) {
-      map.set(ex.id, ex);
-    }
-  }
-
-  return Array.from(map.values());
+  return baseSource.filter((ex) => !hidden.has(ex.id));
 }
 
-export async function refreshExhibitsFromServer(includeInbox = false): Promise<{
+export async function refreshExhibitsFromServer(
+  includeInbox = false,
+  session?: StoredUserSession | null
+): Promise<{
   exhibits: StudioExhibitSample[];
   sheetConnected: boolean;
+  writeConfigured: boolean;
+  authError?: string;
   sheetInbox: SheetInboxRow[];
+  tagDictionary: SheetTagEntry[];
+  sheetCounts?: SheetCounts;
 }> {
-  const scriptUrl = getSavedSheetScriptUrl();
   const headers: Record<string, string> = {};
-  if (scriptUrl) headers['x-sheet-script-url'] = scriptUrl;
+  const activeSession = session ?? getStoredSession();
+  if (includeInbox && activeSession?.email) {
+    headers['x-admin-email'] = activeSession.email;
+    if (activeSession.adminPin) {
+      headers['x-admin-pin'] = activeSession.adminPin;
+    }
+  }
 
   try {
     const res = await fetch(`/api/exhibits${includeInbox ? '?inbox=1' : ''}`, { headers });
-    if (res.ok) {
-      const data = (await res.json()) as {
-        ok?: boolean;
-        exhibits?: StudioExhibitSample[];
-        hiddenIds?: string[];
-        sheetConnected?: boolean;
-        sheetInbox?: SheetInboxRow[];
+    const data = (await res.json()) as {
+      ok?: boolean;
+      authError?: boolean;
+      error?: string;
+      exhibits?: StudioExhibitSample[];
+      hiddenIds?: string[];
+      sheetConnected?: boolean;
+      writeConfigured?: boolean;
+      sheetInbox?: SheetInboxRow[];
+      tagDictionary?: SheetTagEntry[];
+      sheetCounts?: SheetCounts;
+    };
+
+    if (res.status === 403 || data.authError) {
+      return {
+        exhibits: getActiveStudioExhibits(),
+        sheetConnected: false,
+        writeConfigured: Boolean(data.writeConfigured),
+        authError: data.error || 'קוד המנהל אינו תקף.',
+        sheetInbox: [],
+        tagDictionary: [],
       };
-      if (data.ok && Array.isArray(data.exhibits)) {
-        cachedServerExhibits = data.exhibits;
-        cachedServerHiddenIds = data.hiddenIds || [];
-        hasFetchedServer = true;
-        window.dispatchEvent(new CustomEvent(EXHIBITS_UPDATED_EVENT));
-        return {
-          exhibits: getActiveStudioExhibits(),
-          sheetConnected: Boolean(data.sheetConnected),
-          sheetInbox: data.sheetInbox || [],
-        };
-      }
+    }
+
+    if (res.ok && data.ok && Array.isArray(data.exhibits)) {
+      cachedServerExhibits = data.exhibits;
+      cachedServerHiddenIds = data.hiddenIds || [];
+      hasFetchedServer = true;
+      window.dispatchEvent(new CustomEvent(EXHIBITS_UPDATED_EVENT));
+      return {
+        exhibits: getActiveStudioExhibits(),
+        sheetConnected: Boolean(data.sheetConnected),
+        writeConfigured: Boolean(data.writeConfigured),
+        sheetInbox: data.sheetInbox || [],
+        tagDictionary: data.tagDictionary || [],
+        sheetCounts: data.sheetCounts,
+      };
     }
   } catch {
-    // fall back cleanly
+    // network error
   }
 
   return {
     exhibits: getActiveStudioExhibits(),
     sheetConnected: false,
+    writeConfigured: false,
     sheetInbox: [],
+    tagDictionary: [],
   };
 }
 
@@ -252,16 +220,11 @@ export async function upsertStudioExhibit(
       };
     }
 
-    setLocalHiddenIds(getLocalHiddenIds().filter((id) => id !== exhibit.id));
-    cachedServerHiddenIds = cachedServerHiddenIds.filter((id) => id !== exhibit.id);
-    const existing = getLocalCustomExhibits().filter((item) => item.id !== exhibit.id);
-    setLocalCustomExhibits([exhibit, ...existing]);
-    await refreshExhibitsFromServer(false);
-
+    await refreshExhibitsFromServer(false, session);
     return {
       ok: true,
       persistedToSheet: true,
-      message: 'האישור נשמר בגיליון והפריט פורסם באתר.',
+      message: 'האישור נשמר בגיליון החדש והפריט פורסם באתר.',
     };
   } catch {
     return {
@@ -275,16 +238,8 @@ export async function upsertStudioExhibit(
 export async function removeOrHideExhibit(
   exhibit: StudioExhibitSample,
   session: StoredUserSession | null
-): Promise<{ message: string }> {
+): Promise<{ ok: boolean; message: string }> {
   const isBuiltin = STUDIO_EXHIBITS.some((b) => b.id === exhibit.id);
-
-  // Remove any custom override
-  setLocalCustomExhibits(getLocalCustomExhibits().filter((item) => item.id !== exhibit.id));
-
-  // Mark hidden so neither built-in nor sheet row shows on site
-  setLocalHiddenIds([...getLocalHiddenIds(), exhibit.id]);
-
-  const scriptUrl = getSavedSheetScriptUrl();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'x-admin-email': session?.email || '',
@@ -292,7 +247,7 @@ export async function removeOrHideExhibit(
   if (session?.adminPin) headers['x-admin-pin'] = session.adminPin;
 
   try {
-    await fetch('/api/exhibits', {
+    const res = await fetch('/api/exhibits', {
       method: isBuiltin ? 'POST' : 'DELETE',
       headers,
       body: JSON.stringify({
@@ -303,27 +258,33 @@ export async function removeOrHideExhibit(
         title: exhibit.title,
         ownerEmail: session?.email,
         adminPin: session?.adminPin,
-        scriptUrl,
       }),
     });
-  } catch {
-    // ignore
-  }
+    const data = (await res.json()) as { ok?: boolean; persistedToSheet?: boolean; error?: string };
+    if (!res.ok || !data.ok || !data.persistedToSheet) {
+      return {
+        ok: false,
+        message: data.error || 'הסרת הפריט בגיליון נכשלה. התצוגה לא שונתה.',
+      };
+    }
 
-  return {
-    message: `התוכן "${exhibit.title}" הוסר מהתצוגה באתר.`,
-  };
+    await refreshExhibitsFromServer(false, session);
+    return {
+      ok: true,
+      message: `התוכן "${exhibit.title}" הוסר מהאתר ועודכן בגיליון.`,
+    };
+  } catch {
+    return {
+      ok: false,
+      message: 'שגיאת רשת בעת הסרת התוכן מהגיליון.',
+    };
+  }
 }
 
 export async function restoreHiddenExhibit(
   exhibitId: string,
   session: StoredUserSession | null
-): Promise<void> {
-  setLocalHiddenIds(getLocalHiddenIds().filter((id) => id !== exhibitId));
-  cachedServerHiddenIds = cachedServerHiddenIds.filter((id) => id !== exhibitId);
-  window.dispatchEvent(new CustomEvent(EXHIBITS_UPDATED_EVENT));
-
-  const scriptUrl = getSavedSheetScriptUrl();
+): Promise<{ ok: boolean; message: string }> {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'x-admin-email': session?.email || '',
@@ -331,7 +292,7 @@ export async function restoreHiddenExhibit(
   if (session?.adminPin) headers['x-admin-pin'] = session.adminPin;
 
   try {
-    await fetch('/api/exhibits', {
+    const res = await fetch('/api/exhibits', {
       method: 'POST',
       headers,
       body: JSON.stringify({
@@ -340,11 +301,26 @@ export async function restoreHiddenExhibit(
         id: exhibitId,
         ownerEmail: session?.email,
         adminPin: session?.adminPin,
-        scriptUrl,
       }),
     });
+    const data = (await res.json()) as { ok?: boolean; persistedToSheet?: boolean; error?: string };
+    if (!res.ok || !data.ok || !data.persistedToSheet) {
+      return {
+        ok: false,
+        message: data.error || 'שחזור הפריט בגיליון נכשל.',
+      };
+    }
+
+    await refreshExhibitsFromServer(false, session);
+    return {
+      ok: true,
+      message: 'הפריט הוחזר לתצוגה באתר ועודכן בגיליון.',
+    };
   } catch {
-    // ignore
+    return {
+      ok: false,
+      message: 'שגיאת רשת בעת שחזור הפריט.',
+    };
   }
 }
 

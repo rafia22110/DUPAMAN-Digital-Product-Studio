@@ -1,13 +1,13 @@
 import { type DragEvent, type FormEvent, useEffect, useMemo, useRef, useState } from 'react';
 import {
+  AlertTriangle,
   ArrowRight,
-  Check,
   CheckCircle2,
-  Copy,
   Database,
   Edit3,
   ExternalLink,
   EyeOff,
+  KeyRound,
   Layers,
   Lock,
   PlusCircle,
@@ -15,26 +15,27 @@ import {
   RotateCcw,
   ShieldCheck,
   Sparkles,
+  Tag,
   Upload,
 } from 'lucide-react';
 import { DUPAMAN_DOMAINS } from '../data/dupamanCatalog';
 import { STUDIO_EXHIBITS, type StudioExhibitSample } from '../data/studioSamples';
 import {
-  STUDIO_CMS_TAB_URL,
   STUDIO_OWNER_EMAIL,
   STUDIO_OWNER_NAME,
   STUDIO_SHEET_URL,
   getHiddenExhibitIds,
-  getSavedSheetScriptUrl,
   isOwnerEmail,
   refreshExhibitsFromServer,
   removeOrHideExhibit,
   restoreHiddenExhibit,
-  saveSheetScriptUrl,
+  saveStoredSession,
   upsertStudioExhibit,
   useOwnerSession,
   useStudioExhibits,
+  type SheetCounts,
   type SheetInboxRow,
+  type SheetTagEntry,
 } from '../data/exhibitsStore';
 import { CrystalButton, CrystalCard3D } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
@@ -60,60 +61,6 @@ const NODE_OPTIONS: Array<{
   { code: '06', domainId: 'brain-bottom-right', label: '06 · חדר המיזמים', hue: 'gold' },
 ];
 
-const APPS_SCRIPT_CODE = `const SPREADSHEET_ID = '1ypSdymFV-oufB1YEKzNii9uvm05FwdmzN8K0fBkZxKI';
-const CMS_SHEET_NAME = 'Studio_CMS';
-const ALLOWED_OWNER_EMAIL = 'rafiargsnti221169@gmail.com';
-const HEADERS = ['id','code','nodeCode','sectionLabel','mediaType','mediaBadge','status','readinessPct','title','summary','highlights','techTags','liveUrl','liveLabel','githubUrl','audienceNote','isEducational','updatedAt','מוצג_באתר'];
-
-function getOrCreateCmsSheet() {
-  const ss = SpreadsheetApp.openById(SPREADSHEET_ID);
-  let sheet = ss.getSheetByName(CMS_SHEET_NAME);
-  if (!sheet) {
-    sheet = ss.insertSheet(CMS_SHEET_NAME);
-    sheet.getRange(1, 1, 1, HEADERS.length).setValues([HEADERS]);
-    sheet.setFrozenRows(1);
-    sheet.setRightToLeft(true);
-  }
-  return sheet;
-}
-function jsonOut(o){ return ContentService.createTextOutput(JSON.stringify(o)).setMimeType(ContentService.MimeType.JSON); }
-function doGet(){
-  const sheet = getOrCreateCmsSheet();
-  const rows = sheet.getDataRange().getValues();
-  if (rows.length <= 1) return jsonOut({ ok: true, records: [] });
-  const h = rows[0];
-  const records = rows.slice(1).filter(r => String(r[0]||'').trim()).map(r => {
-    const obj = {}; h.forEach((k,i) => obj[String(k)] = r[i]); return obj;
-  });
-  return jsonOut({ ok: true, records });
-}
-function doPost(e){
-  const p = JSON.parse((e && e.postData && e.postData.contents) || '{}');
-  if (String(p.ownerEmail||'').trim().toLowerCase() !== ALLOWED_OWNER_EMAIL) return jsonOut({ ok: false, error: 'Unauthorized' });
-  const sheet = getOrCreateCmsSheet();
-  if (p.action === 'delete') {
-    const rows = sheet.getDataRange().getValues();
-    for (let i = rows.length - 1; i >= 1; i--) if (String(rows[i][0]) === String(p.id||'')) { sheet.deleteRow(i+1); return jsonOut({ ok: true }); }
-    return jsonOut({ ok: false });
-  }
-  if (p.action === 'visibility') {
-    const tid = String(p.id||'').trim();
-    const vis = String(p.visibility||'HIDDEN').toUpperCase();
-    const rows = sheet.getDataRange().getValues();
-    for (let i = 1; i < rows.length; i++) if (String(rows[i][0]) === tid) { sheet.getRange(i+1,19).setValue(vis); return jsonOut({ ok: true, id: tid }); }
-    sheet.appendRow([tid,'',String(p.nodeCode||'01'),'','','','',100,String(p.title||tid),'','','','','','','','FALSE',new Date().toISOString(),vis]);
-    return jsonOut({ ok: true, id: tid });
-  }
-  const ex = p.exhibit || {};
-  const id = String(ex.id || 'cms-' + Date.now());
-  const vis = String(p.visibility || 'TRUE').toUpperCase();
-  const vals = [id,'',String(ex.nodeCode||'03'),'','external','',String(ex.status||'מוצר חי'),100,String(ex.title||''),String(ex.summary||''),'',Array.isArray(ex.techTags)?ex.techTags.join(', '):'',String(ex.url||''),String(ex.actionLabel||'צפה בדמו ↗'),'','',ex.nodeCode==='03'?'TRUE':'FALSE',new Date().toISOString(),vis];
-  const rows = sheet.getDataRange().getValues();
-  for (let i = 1; i < rows.length; i++) if (String(rows[i][0]) === id) { sheet.getRange(i+1,1,1,vals.length).setValues([vals]); return jsonOut({ ok: true, id }); }
-  sheet.appendRow(vals);
-  return jsonOut({ ok: true, id });
-}`;
-
 export function StudioAdminPanel({
   onGoHome,
   onOpenDomain,
@@ -138,18 +85,21 @@ export function StudioAdminPanel({
   const [droppedFileName, setDroppedFileName] = useState<string | null>(null);
   const [isDragging, setIsDragging] = useState(false);
 
-  // Sheet inbox state (strictly read-only preview until Rafael clicks Approve!)
+  // Live Sheet inbox & taxonomy state (strictly read-only until Rafael clicks Approve!)
   const [sheetRows, setSheetRows] = useState<SheetInboxRow[]>([]);
+  const [tagDictionary, setTagDictionary] = useState<SheetTagEntry[]>([]);
+  const [sheetCounts, setSheetCounts] = useState<SheetCounts | undefined>(undefined);
   const [sheetLoading, setSheetLoading] = useState(false);
   const [sheetConnected, setSheetConnected] = useState(false);
+  const [writeConfigured, setWriteConfigured] = useState(false);
+  const [authError, setAuthError] = useState<string | null>(null);
+  const [pinUpdateInput, setPinUpdateInput] = useState('');
   const [sheetSearch, setSheetSearch] = useState('');
 
-  // Script URL
-  const [scriptUrlInput, setScriptUrlInput] = useState(() => getSavedSheetScriptUrl());
-  const [copiedScript, setCopiedScript] = useState(false);
-
   const [saving, setSaving] = useState(false);
-  const [toast, setToast] = useState<{ text: string; domainId?: string } | null>(null);
+  const [toast, setToast] = useState<{ text: string; domainId?: string; isError?: boolean } | null>(
+    null
+  );
   const fileInputRef = useRef<HTMLInputElement | null>(null);
 
   useEffect(() => {
@@ -166,19 +116,26 @@ export function StudioAdminPanel({
     return () => window.removeEventListener('keydown', onKey);
   }, [onGoHome]);
 
-  const loadSheetInbox = async () => {
+  const loadSheetInbox = async (overrideSession = session) => {
     setSheetLoading(true);
-    const res = await refreshExhibitsFromServer(true);
+    setAuthError(null);
+    const res = await refreshExhibitsFromServer(true, overrideSession);
     setSheetRows(res.sheetInbox);
+    setTagDictionary(res.tagDictionary);
+    setSheetCounts(res.sheetCounts);
     setSheetConnected(res.sheetConnected);
+    setWriteConfigured(res.writeConfigured);
+    if (res.authError) {
+      setAuthError(res.authError);
+    }
     setSheetLoading(false);
   };
 
   useEffect(() => {
-    if (isOwner && (activeTab === 'sheet' || activeTab === 'connect')) {
+    if (isOwner) {
       void loadSheetInbox();
     }
-  }, [isOwner, activeTab]);
+  }, [isOwner]);
 
   const hiddenIds = useMemo(() => getHiddenExhibitIds(), [activeExhibits]);
 
@@ -200,7 +157,8 @@ export function StudioAdminPanel({
         r.title.toLowerCase().includes(q) ||
         r.topic.toLowerCase().includes(q) ||
         r.tabLabel.toLowerCase().includes(q) ||
-        r.summary.toLowerCase().includes(q)
+        r.summary.toLowerCase().includes(q) ||
+        (r.suggestedTags || []).some((t) => t.toLowerCase().includes(q))
     );
   }, [sheetRows, sheetSearch]);
 
@@ -215,6 +173,19 @@ export function StudioAdminPanel({
     setActionLabel('צפה בדמו ↗');
     setTagsInput('DUPAMAN, Studio, AI');
     setDroppedFileName(null);
+  };
+
+  const toggleTagInInput = (tag: string) => {
+    const current = tagsInput
+      .split(',')
+      .map((t) => t.trim())
+      .filter(Boolean);
+    if (current.includes(tag)) {
+      setTagsInput(current.filter((t) => t !== tag).join(', '));
+    } else {
+      const next = [...current, tag].slice(0, 3);
+      setTagsInput(next.join(', '));
+    }
   };
 
   const applyDetectedFile = (file: File) => {
@@ -284,18 +255,23 @@ export function StudioAdminPanel({
       techTags,
       hue: nodeOpt.hue,
       actionType: cleanUrl ? 'external' : 'bot',
-      actionLabel: cleanUrl
-        ? actionLabel.trim() || 'צפה בדמו ↗'
-        : 'פתח בבוט',
+      actionLabel: cleanUrl ? actionLabel.trim() || 'צפה בדמו ↗' : 'פתח בבוט',
       url: cleanUrl || undefined,
       botPrompt: `האר לי את ${dom?.title || ''} — ${title.trim()}`,
     };
 
     const res = await upsertStudioExhibit(exhibit, session);
     setSaving(false);
-    setToast({ text: res.message, domainId: exhibit.domainId });
-    resetForm();
-    setActiveTab('manage');
+    setToast({
+      text: res.message,
+      domainId: res.ok ? exhibit.domainId : undefined,
+      isError: !res.ok,
+    });
+    if (res.ok) {
+      resetForm();
+      setActiveTab('manage');
+      void loadSheetInbox();
+    }
   };
 
   const handleEditExhibit = (ex: StudioExhibitSample) => {
@@ -313,14 +289,29 @@ export function StudioAdminPanel({
   const handleLoadSheetRowIntoEditor = (row: SheetInboxRow) => {
     setEditingId(row.id);
     setNodeCode(row.suggestedNodeCode);
-    setStatusLabel(row.tabLabel.includes('מאמר') ? 'מאמר' : 'מוכן להפעלה');
+    setStatusLabel(row.contentType || (row.tabLabel.includes('מאמר') ? 'מאמר' : 'מוכן להפעלה'));
     setTitle(row.title);
     setSummary(row.summary);
     setUrl(row.url);
     setActionLabel(row.url ? 'פתיחת התוכן ↗' : 'פתח בבוט');
-    setTagsInput(`${row.topic || 'DUPAMAN'}, Studio, ${row.suggestedNodeCode}`);
+    const suggested = (row.suggestedTags && row.suggestedTags.length > 0
+      ? row.suggestedTags.slice(0, 3)
+      : [row.topic || 'DUPAMAN', 'Studio', row.suggestedNodeCode]
+    ).join(', ');
+    setTagsInput(suggested);
     setActiveTab('create');
-    setToast({ text: 'נטען לעריכה שלך — בדוק את הפרטים ולחץ "אשר והצג באתר" רק כשתרצה לפרסם.' });
+    setToast({
+      text: 'נטען לעריכה שלך — בדוק את הפרטים והתגיות ולחץ "אשר והצג באתר" רק כשתרצה לפרסם.',
+    });
+  };
+
+  const handleUpdatePin = async (e: FormEvent) => {
+    e.preventDefault();
+    if (!session || !pinUpdateInput.trim()) return;
+    const updated = { ...session, adminPin: pinUpdateInput.trim() };
+    saveStoredSession(updated);
+    setPinUpdateInput('');
+    await loadSheetInbox(updated);
   };
 
   return (
@@ -345,16 +336,7 @@ export function StudioAdminPanel({
           className="inline-flex items-center gap-1.5 rounded-xl border border-emerald-400/45 bg-emerald-500/15 px-3 py-1.5 text-xs font-semibold text-emerald-200 transition-colors hover:bg-emerald-500/25"
         >
           <Database className="h-3.5 w-3.5" />
-          <span>גיליון מאמרים ↗</span>
-        </a>
-        <a
-          href={STUDIO_CMS_TAB_URL}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="hidden items-center gap-1.5 rounded-xl border border-[#f8d478]/45 bg-[#f2be4e]/15 px-3 py-1.5 text-xs font-semibold text-[#fff1c7] transition-colors hover:bg-[#f2be4e]/25 sm:inline-flex"
-        >
-          <Database className="h-3.5 w-3.5" />
-          <span>לשונית Studio_CMS ↗</span>
+          <span>גיליון DUPAMAN החדש ↗</span>
         </a>
       </div>
 
@@ -368,10 +350,19 @@ export function StudioAdminPanel({
             <div>
               <div className="flex items-center gap-2 text-xs font-bold text-[#f8d478]">
                 <Lock className="h-3 w-3" />
-                <span>לוח בקרה פרטי · {STUDIO_OWNER_NAME} בלבד (נסתר משאר המשתמשים)</span>
+                <span>לוח בקרה פרטי · {STUDIO_OWNER_NAME} בלבד</span>
+                <span
+                  className={`rounded-full border px-2 py-0.5 text-[10px] ${
+                    sheetConnected && writeConfigured
+                      ? 'border-emerald-400/50 bg-emerald-500/15 text-emerald-200'
+                      : 'border-rose-400/50 bg-rose-500/15 text-rose-200'
+                  }`}
+                >
+                  {sheetConnected && writeConfigured ? 'מחובר חי לגיליון ✓' : 'חיבור לא פעיל'}
+                </span>
               </div>
               <div className="text-[11px] text-[#cfd8ea]">
-                שום תוכן לא עולה לאתר מעצמו — רק מה שאתה מאשר כאן או מסמן TRUE בלשונית Studio_CMS.
+                שום תוכן לא עולה לאתר מעצמו — כל אישור כאן נכתב ישירות לגיליון הפרטי ומסנכרן את לשוניות העבודה.
               </div>
             </div>
           </div>
@@ -416,7 +407,7 @@ export function StudioAdminPanel({
               }`}
             >
               <Database className="h-3.5 w-3.5" />
-              <span>בחירה מהגיליון שלך</span>
+              <span>מאגר תכנים מהגיליון ({sheetRows.length})</span>
             </button>
 
             <button
@@ -429,16 +420,54 @@ export function StudioAdminPanel({
               }`}
             >
               <Sparkles className="h-3.5 w-3.5" />
-              <span>חיבור כתיבה לגיליון</span>
+              <span>סטטוס חיבור</span>
             </button>
           </div>
         </header>
 
+        {/* התראת קוד מנהל אם נדרש אימות */}
+        {authError && (
+          <form
+            onSubmit={handleUpdatePin}
+            className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-amber-400/50 bg-amber-500/15 px-4 py-2.5 text-xs text-amber-100"
+          >
+            <div className="flex items-center gap-2">
+              <KeyRound className="h-4 w-4 shrink-0 text-amber-300" />
+              <span>{authError}</span>
+            </div>
+            <div className="flex items-center gap-2">
+              <input
+                type="password"
+                value={pinUpdateInput}
+                onChange={(e) => setPinUpdateInput(e.target.value)}
+                placeholder="הזן קוד מנהל (ADMIN PIN)"
+                className="rounded-lg border border-amber-300/40 bg-black/40 px-2.5 py-1 text-xs text-white outline-none"
+              />
+              <button
+                type="submit"
+                className="cursor-pointer rounded-lg border border-amber-300/50 bg-amber-500/30 px-3 py-1 text-[11px] font-bold text-white hover:bg-amber-500/45"
+              >
+                אמת קוד
+              </button>
+            </div>
+          </form>
+        )}
+
         {/* הודעת משוב חיה */}
         {toast && (
-          <div className="flex flex-wrap items-center justify-between gap-2 rounded-2xl border border-emerald-400/45 bg-emerald-500/15 px-4 py-2.5 text-xs text-emerald-100">
+          <div
+            className={`flex flex-wrap items-center justify-between gap-2 rounded-2xl border px-4 py-2.5 text-xs ${
+              toast.isError
+                ? 'border-rose-400/55 bg-rose-500/15 text-rose-100'
+                : 'border-emerald-400/45 bg-emerald-500/15 text-emerald-100'
+            }`}
+          >
             <div className="flex items-center gap-2">
-              <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-300" />
+              {toast.isError ? (
+                <AlertTriangle className="h-4 w-4 shrink-0 text-rose-300" />
+              ) : (
+                <CheckCircle2 className="h-4 w-4 shrink-0 text-emerald-300" />
+              )}
               <span>{toast.text}</span>
             </div>
             <div className="flex items-center gap-2">
@@ -454,7 +483,7 @@ export function StudioAdminPanel({
               <button
                 type="button"
                 onClick={() => setToast(null)}
-                className="cursor-pointer text-[11px] text-emerald-200 hover:text-white"
+                className="cursor-pointer text-[11px] opacity-80 hover:opacity-100"
               >
                 סגור
               </button>
@@ -463,7 +492,7 @@ export function StudioAdminPanel({
         )}
 
         <section className="min-h-0 flex-1 overflow-y-auto pr-0.5">
-          {/* לשונית 1: ניהול מלא של מה שמופיע כרגע באתר (הצגה / עריכה / הסרה / שחזור) */}
+          {/* לשונית 1: ניהול מלא של מה שמופיע כרגע באתר */}
           {activeTab === 'manage' && (
             <CrystalCard3D hue="cyan" interactive={false} className="w-full">
               <div className="flex flex-col gap-4 p-5">
@@ -473,7 +502,7 @@ export function StudioAdminPanel({
                       התכנים המוצגים כעת באתר ({visibleList.length})
                     </h2>
                     <p className="text-xs text-[#cfd8ea]">
-                      כאן אתה שולט ב-100%: ערוך כל כרטיסייה, הסר אותה מהאתר בלחיצה, או הוסף תוכן חדש לכל צומת.
+                      כל שינוי, הסרה או שחזור נכתב ישירות לגיליון הפרטי ומתעדכן לכולם בזמן אמת.
                     </p>
                   </div>
 
@@ -550,7 +579,8 @@ export function StudioAdminPanel({
                           type="button"
                           onClick={async () => {
                             const res = await removeOrHideExhibit(ex, session);
-                            setToast({ text: res.message });
+                            setToast({ text: res.message, isError: !res.ok });
+                            if (res.ok) void loadSheetInbox();
                           }}
                           className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-rose-400/40 bg-rose-500/15 px-2.5 py-1 text-[11px] font-semibold text-rose-200 hover:bg-rose-500/30"
                         >
@@ -574,8 +604,13 @@ export function StudioAdminPanel({
                           key={item.id}
                           type="button"
                           onClick={async () => {
-                            await restoreHiddenExhibit(item.id, session);
-                            setToast({ text: `"${item.title}" הוחזר לתצוגה באתר.`, domainId: item.domainId });
+                            const res = await restoreHiddenExhibit(item.id, session);
+                            setToast({
+                              text: res.ok ? `"${item.title}" הוחזר לתצוגה באתר ועודכן בגיליון.` : res.message,
+                              domainId: res.ok ? item.domainId : undefined,
+                              isError: !res.ok,
+                            });
+                            if (res.ok) void loadSheetInbox();
                           }}
                           className="inline-flex cursor-pointer items-center gap-1.5 rounded-xl border border-amber-300/40 bg-black/30 px-3 py-1.5 text-xs text-amber-100 hover:bg-amber-500/20"
                         >
@@ -653,7 +688,7 @@ export function StudioAdminPanel({
                     </div>
                     <div>
                       <label className="mb-1 block text-[11px] font-semibold text-[#cfd8ea]">
-                        תגית סטטוס (למשל: מוצר חי / מצגת / דף עבודה)
+                        תגית סטטוס (למשל: מוצר חי / מאמר / מערך שיעור)
                       </label>
                       <input
                         type="text"
@@ -732,6 +767,24 @@ export function StudioAdminPanel({
                         onChange={(e) => setTagsInput(e.target.value)}
                         className="w-full rounded-xl border border-white/18 bg-white/[0.04] px-3 py-2 text-xs text-white outline-none focus:border-[#84e8ff]/60"
                       />
+                      {tagDictionary.length > 0 && (
+                        <div className="mt-2 flex flex-wrap gap-1">
+                          {tagDictionary
+                            .filter((t) => t.group !== 'שלב עבודה')
+                            .slice(0, 12)
+                            .map((t) => (
+                              <button
+                                key={`${t.group}-${t.tag}`}
+                                type="button"
+                                onClick={() => toggleTagInInput(t.tag)}
+                                className="inline-flex cursor-pointer items-center gap-1 rounded-md border border-white/15 bg-white/[0.04] px-2 py-0.5 text-[10px] text-[#cfd8ea] hover:border-[#f8d478]/60 hover:text-white"
+                              >
+                                <Tag className="h-2.5 w-2.5 text-[#f8d478]" />
+                                <span>{t.tag}</span>
+                              </button>
+                            ))}
+                        </div>
+                      )}
                     </div>
                   </div>
 
@@ -744,7 +797,7 @@ export function StudioAdminPanel({
                       className="flex-1"
                     >
                       <Sparkles className="h-4 w-4" />
-                      <span>{saving ? 'שומר...' : editingId ? 'שמור שינויים באתר' : 'אשר והצג באתר'}</span>
+                      <span>{saving ? 'שומר לגיליון...' : editingId ? 'שמור ופרסם באתר' : 'אשר והצג באתר'}</span>
                     </CrystalButton>
                     {editingId && (
                       <CrystalButton
@@ -765,17 +818,17 @@ export function StudioAdminPanel({
             </CrystalCard3D>
           )}
 
-          {/* לשונית 3: בחירה מבוקרת מתוך הגיליון (שום דבר מכאן לא מוצג באתר עד שתלחץ לאשר!) */}
+          {/* לשונית 3: בחירה מבוקרת מתוך הגיליון */}
           {activeTab === 'sheet' && (
             <CrystalCard3D hue="cyan" interactive={false} className="w-full">
               <div className="flex flex-col gap-3 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h2 className="text-base font-bold text-white">
-                      תכנים מהגיליון שלך — לעריכה ואישור שלך בלבד ({filteredSheetRows.length})
+                      מאגר תכנים וטיוטות מהגיליון שלך ({filteredSheetRows.length})
                     </h2>
                     <p className="text-xs text-[#c7d3e6]">
-                      שום פריט כאן אינו מופיע באתר הציבורי. לחץ &quot;ערוך ובדוק&quot; על כל שורה שתרצה להכין לפרסום.
+                      נטען ישירות מלשוניות &quot;מאגר תכנים&quot; ו-&quot;נכסי סטודיו&quot; בגיליון הפרטי. שום פריט לא מתפרסם ללא אישור שלך כאן.
                     </p>
                   </div>
                   <div className="flex items-center gap-2">
@@ -783,7 +836,7 @@ export function StudioAdminPanel({
                       type="text"
                       value={sheetSearch}
                       onChange={(e) => setSheetSearch(e.target.value)}
-                      placeholder="חפש בשורות הגיליון..."
+                      placeholder="חפש כותרת, תחום או תגית..."
                       className="rounded-xl border border-white/18 bg-white/[0.04] px-3 py-1.5 text-xs text-white placeholder-[#8e9bb2] outline-none focus:border-[#84e8ff]/60"
                     />
                     <CrystalButton
@@ -800,11 +853,13 @@ export function StudioAdminPanel({
 
                 {sheetLoading ? (
                   <div className="py-10 text-center text-xs text-[#cfd8ea]">
-                    קורא שורות מהגיליון שלך...
+                    טוען ישירות מהגיליון הפרטי שלך...
                   </div>
                 ) : filteredSheetRows.length === 0 ? (
                   <div className="py-10 text-center text-xs text-[#cfd8ea]">
-                    לא נמצאו שורות תואמות — לחץ &quot;רענן מהגיליון&quot;.
+                    {authError
+                      ? 'הזן את קוד המנהל למעלה כדי לצפות במאגר התכנים.'
+                      : 'לא נמצאו שורות תואמות — לחץ "רענן מהגיליון".'}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-2.5 md:grid-cols-2">
@@ -818,12 +873,32 @@ export function StudioAdminPanel({
                             <span className="rounded-md border border-[#84e8ff]/35 bg-[#48d6fc]/12 px-2 py-0.5 font-semibold text-[#dcf8ff]">
                               {row.tabLabel} · צומת מוצע {row.suggestedNodeCode}
                             </span>
-                            <span className="text-amber-300">טיוטה (לא באתר)</span>
+                            <span
+                              className={
+                                row.siteApproval === 'מאושר באתר'
+                                  ? 'font-semibold text-emerald-300'
+                                  : 'text-amber-300'
+                              }
+                            >
+                              {row.siteApproval || 'לא אושר באתר'} · {row.stage || 'קליטה'}
+                            </span>
                           </div>
                           <h3 className="mt-1.5 text-sm font-bold text-white">{row.title}</h3>
                           <p className="mt-1 line-clamp-2 text-xs leading-relaxed text-[#d7e2f5]">
                             {row.summary}
                           </p>
+                          {row.suggestedTags && row.suggestedTags.length > 0 && (
+                            <div className="mt-2 flex flex-wrap gap-1">
+                              {row.suggestedTags.slice(0, 4).map((tag) => (
+                                <span
+                                  key={tag}
+                                  className="rounded-md border border-white/10 bg-white/[0.04] px-1.5 py-0.5 text-[10px] text-[#b9c8e3]"
+                                >
+                                  #{tag}
+                                </span>
+                              ))}
+                            </div>
+                          )}
                         </div>
 
                         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2">
@@ -854,69 +929,66 @@ export function StudioAdminPanel({
             </CrystalCard3D>
           )}
 
-          {/* לשונית 4: חיבור כתיבה דו-כיוונית לגיליון */}
+          {/* לשונית 4: סטטוס חיבור אמיתי בצד השרת */}
           {activeTab === 'connect' && (
             <CrystalCard3D hue="gold" interactive={false} className="w-full">
               <div className="flex flex-col gap-4 p-5">
                 <div className="flex flex-wrap items-center justify-between gap-2">
                   <div>
                     <h2 className="text-base font-bold text-white">
-                      סנכרון דו-כיווני עם הגיליון שלך ({STUDIO_OWNER_EMAIL})
+                      חיבור שרת מאובטח לגיליון DUPAMAN ({STUDIO_OWNER_EMAIL})
                     </h2>
                     <p className="mt-0.5 text-xs text-[#cfd8ea]">
-                      קריאה מלשונית <code dir="ltr">Studio_CMS</code> כבר עובדת אוטומטית (ורק שורות שמסומנות <code dir="ltr">TRUE</code> בעמודת <code dir="ltr">מוצג_באתר</code> מופיעות באתר). לכתיבה אוטומטית מהאתר אל הגיליון, הדבק את כתובת ה-Web App של Apps Script:
+                      החיבור מנוהל כולו בצד השרת (Vercel + Google Apps Script) — ללא מפתחות בדפדפן וללא פתיחת הגיליון לציבור.
                     </p>
                   </div>
-                  <span
-                    className={`rounded-full border px-3 py-1 text-xs font-bold ${
-                      sheetConnected
-                        ? 'border-emerald-400/55 bg-emerald-500/20 text-emerald-200'
-                        : 'border-amber-400/45 bg-amber-500/15 text-amber-200'
-                    }`}
+                  <CrystalButton
+                    hue="cyan"
+                    size="sm"
+                    onClick={() => void loadSheetInbox()}
+                    disabled={sheetLoading}
                   >
-                    {sheetConnected ? 'כתיבה ישירה לגיליון מחוברת ✓' : 'קריאה חיה פעילה'}
-                  </span>
+                    <RefreshCw className={`h-3.5 w-3.5 ${sheetLoading ? 'animate-spin' : ''}`} />
+                    <span>בדוק חיבור עכשיו</span>
+                  </CrystalButton>
                 </div>
 
-                <form
-                  onSubmit={async (e) => {
-                    e.preventDefault();
-                    saveSheetScriptUrl(scriptUrlInput);
-                    await loadSheetInbox();
-                    setToast({ text: 'כתובת ה-Apps Script נשמרה ונבדקה.' });
-                  }}
-                  className="flex flex-wrap items-center gap-2"
-                >
-                  <input
-                    type="url"
-                    dir="ltr"
-                    value={scriptUrlInput}
-                    onChange={(e) => setScriptUrlInput(e.target.value)}
-                    placeholder="https://script.google.com/macros/s/.../exec"
-                    className="min-w-[260px] flex-1 rounded-xl border border-white/18 bg-white/[0.04] px-3.5 py-2 text-left text-xs text-white placeholder-[#8e9bb2] outline-none focus:border-emerald-400/60"
-                  />
-                  <CrystalButton hue="cyan" size="sm" type="submit">
-                    <Check className="h-3.5 w-3.5" />
-                    <span>שמור ובדוק</span>
-                  </CrystalButton>
-                  <CrystalButton
-                    hue="gold"
-                    size="sm"
-                    type="button"
-                    onClick={async () => {
-                      try {
-                        await navigator.clipboard.writeText(APPS_SCRIPT_CODE);
-                        setCopiedScript(true);
-                        setTimeout(() => setCopiedScript(false), 2400);
-                      } catch {
-                        // ignore
-                      }
-                    }}
-                  >
-                    {copiedScript ? <Check className="h-3.5 w-3.5" /> : <Copy className="h-3.5 w-3.5" />}
-                    <span>{copiedScript ? 'קוד ה-Apps Script הועתק!' : 'העתק קוד Apps Script'}</span>
-                  </CrystalButton>
-                </form>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
+                  <div className="rounded-xl border border-white/12 bg-white/[0.04] p-3.5">
+                    <div className="text-[11px] text-[#aeb9cf]">קריאה מהגיליון</div>
+                    <div
+                      className={`mt-1 text-sm font-bold ${
+                        sheetConnected ? 'text-emerald-300' : 'text-rose-300'
+                      }`}
+                    >
+                      {sheetConnected ? 'מחובר חי ✓' : 'לא מחובר'}
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-white/12 bg-white/[0.04] p-3.5">
+                    <div className="text-[11px] text-[#aeb9cf]">כתיבה ופרסום מאובטח</div>
+                    <div
+                      className={`mt-1 text-sm font-bold ${
+                        writeConfigured ? 'text-emerald-300' : 'text-amber-300'
+                      }`}
+                    >
+                      {writeConfigured ? 'מוגדר ופעיל ✓' : 'חסר משתנה שרת'}
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-white/12 bg-white/[0.04] p-3.5">
+                    <div className="text-[11px] text-[#aeb9cf]">מאגר תכנים בגיליון</div>
+                    <div className="mt-1 text-sm font-bold text-white">
+                      {sheetCounts ? `${sheetCounts.content} פריטים` : `${sheetRows.length} טיוטות`}
+                    </div>
+                  </div>
+                  <div className="rounded-xl border border-white/12 bg-white/[0.04] p-3.5">
+                    <div className="text-[11px] text-[#aeb9cf]">נכסי סטודיו / מנויים</div>
+                    <div className="mt-1 text-sm font-bold text-white">
+                      {sheetCounts
+                        ? `${sheetCounts.assets} נכסים · ${sheetCounts.channels} ערוצים/מנויים`
+                        : `${activeExhibits.length} פעילים באתר`}
+                    </div>
+                  </div>
+                </div>
               </div>
             </CrystalCard3D>
           )}

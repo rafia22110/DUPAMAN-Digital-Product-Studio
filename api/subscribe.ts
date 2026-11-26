@@ -36,21 +36,22 @@ export default async function handler(req: VercelReq, res: VercelRes) {
     return;
   }
 
-  const scriptUrl = process.env.DUPAMAN_SCRIPT_URL;
-  const secret = process.env.DUPAMAN_WEBHOOK_SECRET;
-  if (scriptUrl) {
+  const scriptUrl = (process.env.DUPAMAN_SCRIPT_URL || process.env.DUPAMAN_EXHIBITS_SCRIPT_URL || '').trim();
+  const secret = (process.env.DUPAMAN_WEBHOOK_SECRET || '').trim();
+  if (scriptUrl && secret) {
     try {
       const upstream = await fetch(scriptUrl, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ secret, name, email, topics, source }),
+        body: JSON.stringify({ action: 'subscribe', secret, name, email, topics, source }),
         redirect: 'follow',
       });
       if (upstream.ok) {
-        const result = (await upstream.json()) as { ok?: boolean; status?: string; id?: string };
+        const result = (await upstream.json()) as { ok?: boolean; status?: string; id?: string; error?: string };
         if (result.ok) {
           res.status(200).json({
             ok: true,
+            persistedToSheet: true,
             status: result.status || 'created',
             id: result.id ?? `DUP-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
           });
@@ -58,13 +59,12 @@ export default async function handler(req: VercelReq, res: VercelRes) {
         }
       }
     } catch {
-      // fall through
+      // upstream failed
     }
   }
 
-  res.status(200).json({
-    ok: true,
-    status: 'created',
-    id: `DUP-${crypto.randomUUID().slice(0, 8).toUpperCase()}`,
+  res.status(503).json({
+    ok: false,
+    error: 'לא ניתן לשמור את ההרשמה לגיליון כרגע. נסה שוב בעוד רגע.',
   });
 }
