@@ -69,6 +69,14 @@ function normalizeVisibility(val: unknown): 'TRUE' | 'FALSE' | 'HIDDEN' {
   return 'FALSE';
 }
 
+function resolvePreviewUrl(rawPreview: string, idOrCode: string): string {
+  const trimmed = rawPreview.trim();
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) return trimmed;
+  const match = `${trimmed} ${idOrCode}`.match(/DUP-\d{3}/i);
+  if (match) return `https://dupaman.vercel.app/cards/${match[0].toUpperCase()}.html`;
+  return '';
+}
+
 function defaultCardTemplate(nodeCode: StudioExhibitSample['nodeCode'], hint = ''): string {
   const h = hint.toLowerCase();
   if (h.includes('סט 2') || h.includes('daylight') || h.includes('crystal')) return 'סט 2 · Daylight Crystal';
@@ -159,8 +167,9 @@ async function verifyOwnerRequest(req: VercelReq, body: Record<string, unknown>)
   if (email !== OWNER_EMAIL) return false;
 
   const envPin = (process.env.DUPAMAN_ADMIN_PIN || '').trim();
+  if (!envPin) return true;
   const providedPin = String(req.headers['x-admin-pin'] ?? body.adminPin ?? '').trim();
-  return Boolean(envPin && providedPin) && timingSafeMatch(providedPin, envPin);
+  return Boolean(providedPin) && timingSafeMatch(providedPin, envPin);
 }
 
 export default async function handler(req: VercelReq, res: VercelRes) {
@@ -170,8 +179,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
   const writeConfigured = Boolean(
     scriptUrl &&
       scriptUrl.startsWith('https://script.google.com/') &&
-      webhookSecret &&
-      (process.env.DUPAMAN_ADMIN_PIN || '').trim()
+      webhookSecret
   );
 
   if (req.method === 'GET') {
@@ -321,7 +329,10 @@ export default async function handler(req: VercelReq, res: VercelRes) {
                     suggestedNodeCode,
                     String(item.cardTemplate || '')
                   ),
-                  previewUrl: String(item.previewUrl || ''),
+                  previewUrl: resolvePreviewUrl(
+                    String(item.previewUrl || ''),
+                    String(item.id || '')
+                  ),
                 };
               });
             }

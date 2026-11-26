@@ -151,7 +151,7 @@ export function StudioAdminPanel({
     return () => window.removeEventListener('keydown', onKey);
   }, [onGoHome]);
 
-  const loadSheetInbox = async (overrideSession = session) => {
+  const loadSheetInbox = async (overrideSession = session, showFeedback = false) => {
     setSheetLoading(true);
     setAuthError(null);
     const res = await refreshExhibitsFromServer(true, overrideSession);
@@ -162,6 +162,13 @@ export function StudioAdminPanel({
     setWriteConfigured(res.writeConfigured);
     if (res.authError) {
       setAuthError(res.authError);
+    } else if (showFeedback) {
+      setToast({
+        text: res.sheetConnected
+          ? `רוענן בהצלחה מהגיליון החי — נטענו ${res.sheetInbox.length} פריטים.`
+          : 'השרת (Vercel) עדיין לא מחובר לגיליון — יש להגדיר את משתני הסביבה ב-Vercel.',
+        isError: !res.sheetConnected,
+      });
     }
     setSheetLoading(false);
   };
@@ -944,7 +951,8 @@ export function StudioAdminPanel({
                     <CrystalButton
                       hue="cyan"
                       size="sm"
-                      onClick={() => void loadSheetInbox()}
+                      type="button"
+                      onClick={() => void loadSheetInbox(session, true)}
                       disabled={sheetLoading}
                     >
                       <RefreshCw className={`h-3.5 w-3.5 ${sheetLoading ? 'animate-spin' : ''}`} />
@@ -1011,13 +1019,26 @@ export function StudioAdminPanel({
                         </div>
 
                         <div className="flex flex-wrap items-center justify-between gap-2 border-t border-white/10 pt-2">
-                          <button
-                            type="button"
-                            onClick={() => handleLoadSheetRowIntoEditor(row)}
-                            className="cursor-pointer rounded-lg border border-[#f8d478]/50 bg-[#f2be4e]/18 px-3 py-1 text-[11px] font-bold text-[#fff2cf] hover:bg-[#f2be4e]/30"
-                          >
-                            ערוך ובדוק לפני אישור
-                          </button>
+                          <div className="flex flex-wrap items-center gap-1.5">
+                            <button
+                              type="button"
+                              onClick={() => handleLoadSheetRowIntoEditor(row)}
+                              className="cursor-pointer rounded-lg border border-[#f8d478]/50 bg-[#f2be4e]/18 px-3 py-1 text-[11px] font-bold text-[#fff2cf] hover:bg-[#f2be4e]/30"
+                            >
+                              ערוך ובדוק לפני אישור
+                            </button>
+                            {row.previewUrl && (
+                              <a
+                                href={row.previewUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="inline-flex items-center gap-1 rounded-lg border border-emerald-400/45 bg-emerald-500/15 px-2.5 py-1 text-[11px] font-semibold text-emerald-200 hover:bg-emerald-500/25"
+                              >
+                                <span>✨ תצוגה מקדימה HTMX</span>
+                                <ExternalLink className="h-3 w-3" />
+                              </a>
+                            )}
+                          </div>
                           {row.url && (
                             <a
                               href={row.url}
