@@ -391,9 +391,17 @@ export default async function handler(req: VercelReq, res: VercelRes) {
       }
     }
 
+    const writeConfigured = Boolean(
+      scriptUrl &&
+      scriptUrl.startsWith('https://script.google.com/') &&
+      process.env.DUPAMAN_WEBHOOK_SECRET &&
+      process.env.DUPAMAN_ADMIN_PIN
+    );
+
     res.status(200).json({
       ok: true,
       sheetConnected,
+      writeConfigured,
       exhibits: Array.from(mergedMap.values()),
       hiddenIds: Array.from(hiddenIds),
       ...(includeInbox ? { sheetInbox } : {}),
