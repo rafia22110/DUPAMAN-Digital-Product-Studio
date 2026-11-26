@@ -32,6 +32,7 @@ export interface SheetInboxRow {
   summary: string;
   url: string;
   suggestedNodeCode: StudioExhibitSample['nodeCode'];
+  suggestedTags?: string[];
 }
 
 let cachedServerExhibits: StudioExhibitSample[] | null = null;
@@ -179,46 +180,61 @@ export function getActiveStudioExhibits(): StudioExhibitSample[] {
   return Array.from(map.values());
 }
 
-export async function refreshExhibitsFromServer(includeInbox = false): Promise<{
+export async function refreshExhibitsFromServer(
+  includeInbox = false,
+  session?: StoredUserSession | null
+): Promise<{
   exhibits: StudioExhibitSample[];
   sheetConnected: boolean;
+  writeConfigured: boolean;
   sheetInbox: SheetInboxRow[];
+  error?: string;
 }> {
   const scriptUrl = getSavedSheetScriptUrl();
   const headers: Record<string, string> = {};
   if (scriptUrl) headers['x-sheet-script-url'] = scriptUrl;
+  if (includeInbox && session?.email) headers['x-admin-email'] = session.email;
+  if (includeInbox && session?.adminPin) headers['x-admin-pin'] = session.adminPin;
 
   try {
     const res = await fetch(`/api/exhibits${includeInbox ? '?inbox=1' : ''}`, { headers });
-    if (res.ok) {
-      const data = (await res.json()) as {
-        ok?: boolean;
-        exhibits?: StudioExhibitSample[];
-        hiddenIds?: string[];
-        sheetConnected?: boolean;
-        sheetInbox?: SheetInboxRow[];
+    const data = (await res.json()) as {
+      ok?: boolean;
+      exhibits?: StudioExhibitSample[];
+      hiddenIds?: string[];
+      sheetConnected?: boolean;
+      writeConfigured?: boolean;
+      sheetInbox?: SheetInboxRow[];
+      error?: string;
+    };
+    if (!res.ok || !data.ok || !Array.isArray(data.exhibits)) {
+      return {
+        exhibits: getActiveStudioExhibits(),
+        sheetConnected: false,
+        writeConfigured: false,
+        sheetInbox: [],
+        error: data.error || 'לא ניתן לטעון את הגיליון.',
       };
-      if (data.ok && Array.isArray(data.exhibits)) {
-        cachedServerExhibits = data.exhibits;
-        cachedServerHiddenIds = data.hiddenIds || [];
-        hasFetchedServer = true;
-        window.dispatchEvent(new CustomEvent(EXHIBITS_UPDATED_EVENT));
-        return {
-          exhibits: getActiveStudioExhibits(),
-          sheetConnected: Boolean(data.sheetConnected),
-          sheetInbox: data.sheetInbox || [],
-        };
-      }
     }
+    cachedServerExhibits = data.exhibits;
+    cachedServerHiddenIds = data.hiddenIds || [];
+    hasFetchedServer = true;
+    window.dispatchEvent(new CustomEvent(EXHIBITS_UPDATED_EVENT));
+    return {
+      exhibits: getActiveStudioExhibits(),
+      sheetConnected: Boolean(data.sheetConnected),
+      writeConfigured: Boolean(data.writeConfigured),
+      sheetInbox: data.sheetInbox || [],
+    };
   } catch {
-    // fall back cleanly
+    return {
+      exhibits: getActiveStudioExhibits(),
+      sheetConnected: false,
+      writeConfigured: false,
+      sheetInbox: [],
+      error: 'שגיאת תקשורת בטעינת הגיליון.',
+    };
   }
-
-  return {
-    exhibits: getActiveStudioExhibits(),
-    sheetConnected: false,
-    sheetInbox: [],
-  };
 }
 
 export async function upsertStudioExhibit(
