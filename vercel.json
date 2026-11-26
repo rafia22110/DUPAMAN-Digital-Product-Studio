@@ -16,10 +16,6 @@
       "destination": "/api/agent-message"
     },
     {
-      "source": "/starter",
-      "destination": "/starter/index.html"
-    },
-    {
       "source": "/api/(.*)",
       "destination": "/api/$1"
     },
