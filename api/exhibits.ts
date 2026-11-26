@@ -71,7 +71,7 @@ function parseCsvRows(csvText: string): string[][] {
 }
 
 function normalizeSheetHeader(value: string): string {
-  return value.toLowerCase().replace(/[^\\p{L}\\p{N}]+/gu, ' ').trim();
+  return value.toLowerCase().replace(/[^\p{L}\p{N}]+/gu, ' ').trim();
 }
 
 function findColumn(headers: string[], aliases: string[]): number {
@@ -189,19 +189,12 @@ async function verifyOwnerRequest(req: VercelReq, body: Record<string, unknown>)
 
   const envPin = (process.env.DUPAMAN_ADMIN_PIN || '').trim();
   const providedPin = String(req.headers['x-admin-pin'] ?? body.adminPin ?? '').trim();
-  if (envPin) {
-    return Boolean(providedPin) && timingSafeMatch(providedPin, envPin);
-  }
-
-  return true;
+  return Boolean(envPin && providedPin) && timingSafeMatch(providedPin, envPin);
 }
 
 export default async function handler(req: VercelReq, res: VercelRes) {
   const sheetId = (process.env.DUPAMAN_SHEET_ID || DEFAULT_SHEET_ID).trim();
-  const scriptUrl = (
-    process.env.DUPAMAN_EXHIBITS_SCRIPT_URL ||
-    String(req.headers['x-sheet-script-url'] ?? '')
-  ).trim();
+  const scriptUrl = (process.env.DUPAMAN_EXHIBITS_SCRIPT_URL || '').trim();
 
   if (req.method === 'GET') {
     const includeInbox =
@@ -408,10 +401,12 @@ export default async function handler(req: VercelReq, res: VercelRes) {
       return;
     }
 
-    const targetScriptUrl = (
-      process.env.DUPAMAN_EXHIBITS_SCRIPT_URL ||
-      String(body.scriptUrl ?? '')
-    ).trim();
+    const targetScriptUrl = (process.env.DUPAMAN_EXHIBITS_SCRIPT_URL || '').trim();
+    const webhookSecret = (process.env.DUPAMAN_WEBHOOK_SECRET || '').trim();
+    if (!targetScriptUrl || !targetScriptUrl.startsWith('https://script.google.com/') || !webhookSecret) {
+      res.status(503).json({ ok: false, error: 'חיבור הגיליון לא הוגדר בשרת. לא נשמר ולא פורסם תוכן.' });
+      return;
+    }
 
     if (targetScriptUrl && targetScriptUrl.startsWith('https://script.google.com/')) {
       try {
@@ -420,7 +415,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             ownerEmail: OWNER_EMAIL,
-            secret: process.env.DUPAMAN_WEBHOOK_SECRET || '',
+            secret: webhookSecret,
             action: req.method === 'DELETE' ? 'delete' : String(body.action || 'upsert'),
             id: body.id,
             visibility: body.visibility || 'TRUE',
@@ -449,10 +444,7 @@ export default async function handler(req: VercelReq, res: VercelRes) {
       }
     }
 
-    res.status(200).json({
-      ok: true,
-      persistedToSheet: false,
-    });
+    res.status(503).json({ ok: false, error: 'חיבור הגיליון אינו זמין. לא נשמר ולא פורסם תוכן.' });
     return;
   }
 

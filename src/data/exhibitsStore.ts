@@ -225,14 +225,6 @@ export async function upsertStudioExhibit(
   exhibit: StudioExhibitSample,
   session: StoredUserSession | null
 ): Promise<{ ok: boolean; persistedToSheet: boolean; message: string }> {
-  // Ensure it's unhidden if it was previously hidden
-  setLocalHiddenIds(getLocalHiddenIds().filter((id) => id !== exhibit.id));
-  cachedServerHiddenIds = cachedServerHiddenIds.filter((id) => id !== exhibit.id);
-
-  const existing = getLocalCustomExhibits().filter((item) => item.id !== exhibit.id);
-  setLocalCustomExhibits([exhibit, ...existing]);
-
-  const scriptUrl = getSavedSheetScriptUrl();
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
     'x-admin-email': session?.email || '',
@@ -248,27 +240,36 @@ export async function upsertStudioExhibit(
         visibility: 'TRUE',
         ownerEmail: session?.email,
         adminPin: session?.adminPin,
-        scriptUrl,
         exhibit,
       }),
     });
     const data = (await res.json()) as { ok?: boolean; persistedToSheet?: boolean; error?: string };
-    if (res.ok && data.ok && data.persistedToSheet) {
+    if (!res.ok || !data.ok || !data.persistedToSheet) {
       return {
-        ok: true,
-        persistedToSheet: true,
-        message: 'אושר, פורסם באתר ונשמר ישירות בלשונית Studio_CMS בגיליון!',
+        ok: false,
+        persistedToSheet: false,
+        message: data.error || 'הגיליון לא עודכן. התוכן לא פורסם.',
       };
     }
-  } catch {
-    // local update already applied
-  }
 
-  return {
-    ok: true,
-    persistedToSheet: false,
-    message: 'אושר ומוצג כעת באתר! (לשמירה אוטומטית בגיליון, חבר Apps Script בלשונית חיבור לגיליון).',
-  };
+    setLocalHiddenIds(getLocalHiddenIds().filter((id) => id !== exhibit.id));
+    cachedServerHiddenIds = cachedServerHiddenIds.filter((id) => id !== exhibit.id);
+    const existing = getLocalCustomExhibits().filter((item) => item.id !== exhibit.id);
+    setLocalCustomExhibits([exhibit, ...existing]);
+    await refreshExhibitsFromServer(false);
+
+    return {
+      ok: true,
+      persistedToSheet: true,
+      message: 'האישור נשמר בגיליון והפריט פורסם באתר.',
+    };
+  } catch {
+    return {
+      ok: false,
+      persistedToSheet: false,
+      message: 'לא ניתן להתחבר לשרת. התוכן לא נשמר ולא פורסם.',
+    };
+  }
 }
 
 export async function removeOrHideExhibit(
