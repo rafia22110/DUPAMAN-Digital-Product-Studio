@@ -336,7 +336,7 @@ export function StudioExhibitCard({
                     size={compact ? 'sm' : 'md'}
                     onClick={() =>
                       onOpenInBot?.(
-                        exhibit.botPrompt || `ספר לי על ${exhibit.title}`,
+                        exhibit.botPrompt || `ספר לי על ${translateText(exhibit.title, language)}`,
                         exhibit.nodeTitle
                       )
                     }
