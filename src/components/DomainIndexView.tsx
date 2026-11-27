@@ -95,7 +95,7 @@ export function DomainIndexView({
             style={{ textShadow: '0 4px 24px rgba(2,4,10,0.85)' }}
             className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl"
           >
-            {domain.title}
+            {translateText(domain.title, language)}
           </h1>
           <p className="mt-1 text-xs leading-relaxed text-[#d7dfee]/85 sm:text-sm">
             {translateText(domain.description, language)}
