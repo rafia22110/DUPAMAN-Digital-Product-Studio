@@ -112,14 +112,14 @@ function LiveConceptDemoModal({
                       {agentResult?.metric}
                     </span>
                   </div>
-                  <div className="mt-2.5 text-base font-bold text-white">{agentResult?.action}</div>
+                  <div className="mt-2.5 text-base font-bold text-white">{translateText(agentResult?.action, language)}</div>
                   <p className="mt-1 text-xs leading-relaxed text-[#dce6f7]">
-                    {agentResult?.detail}
+                    {translateText(agentResult?.detail, language)}
                   </p>
                 </div>
 
                 <div className="flex flex-wrap gap-1.5">
-                  {['בדוק חשיפת מט״ח', 'העבר ₪15,000 לחיסכון', 'נתח תזרים חודשי'].map((cmd) => (
+                  {(en ? ['Check FX exposure', 'Move ₪15,000 to savings', 'Analyze monthly cash flow'] : ['בדוק חשיפת מט״ח', 'העבר ₪15,000 לחיסכון', 'נתח תזרים חודשי']).map((cmd) => (
                     <button
                       key={cmd}
                       type="button"
