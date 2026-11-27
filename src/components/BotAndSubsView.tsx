@@ -173,6 +173,7 @@ export function BotAndSubsView({
         body: JSON.stringify({
           message: clean,
           matchedExhibitId: matchedExhibit?.id ?? null,
+          language,
         }),
       });
       if (res.ok) {
