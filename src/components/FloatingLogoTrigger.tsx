@@ -74,6 +74,8 @@ export function FloatingLogoTrigger({
     return (
       <div
         ref={wrapRef}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
         style={{
           top: 'max(10px, 1.8vh)',
           right: 'max(16px, 2.5vw)',
@@ -144,11 +146,11 @@ export function FloatingLogoTrigger({
   }
 
   return (
-    <div ref={wrapRef} className="fixed top-4 right-5 z-40">
+    <div ref={wrapRef} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} className="fixed top-4 right-5 z-40">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="תפריט DUPAMAN — אודות, יצירת קשר, התחברות"
+        aria-label={en ? "DUPAMAN menu — About, Contact, Login" : "תפריט DUPAMAN — אודות, יצירת קשר, התחברות"}
         className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-transparent transition-transform duration-200 hover:scale-105 outline-none sm:h-20 sm:w-20"
       >
         {logoSrc ? (
@@ -166,7 +168,7 @@ export function FloatingLogoTrigger({
 
       {open && (
         <div
-          dir="rtl"
+          dir={en ? "ltr" : "rtl"}
           style={{
             background:
               'linear-gradient(135deg, rgba(255,255,255,0.11) 0%, rgba(12,18,32,0.34) 52%, rgba(255,255,255,0.04) 100%)',
@@ -195,6 +197,7 @@ export function FloatingLogoTrigger({
               </CrystalButton>
             );
           })}
+          <div className="mt-1 flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-2 py-1.5"><span className="px-1 text-[10px] uppercase tracking-[0.22em] text-white/45">Language</span><div className="flex items-center gap-1"><button type="button" aria-pressed={language === "en"} onClick={() => setPublicLanguage("en")} className="rounded-lg px-2.5 py-1 text-[10px] font-semibold tracking-wider text-white/80 hover:bg-white/10">EN</button><button type="button" aria-pressed={language === "he"} onClick={() => setPublicLanguage("he")} className="rounded-lg px-2.5 py-1 text-[10px] font-semibold text-white/80 hover:bg-white/10">עברית</button></div></div>
           <CrystalButton
             hue="gold"
             size="sm"

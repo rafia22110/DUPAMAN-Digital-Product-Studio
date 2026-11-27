@@ -13,6 +13,7 @@ import {
 import { CrystalButton, CrystalCard3D } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { SubtleBrainBackdrop } from './SubtleBrainBackdrop';
+import { usePublicLanguage } from '../i18n';
 import {
   STUDIO_OWNER_NAME,
   isOwnerEmail,
@@ -33,6 +34,8 @@ export function LogoModalViews({
   onGoHome,
   onOpenBot,
 }: LogoModalViewsProps) {
+  const language = usePublicLanguage();
+  const en = language === 'en';
   // Contact form
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -84,7 +87,7 @@ export function LogoModalViews({
 
   return (
     <div
-      dir="rtl"
+      dir={en ? "ltr" : "rtl"}
       className="fixed inset-0 flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#020204] px-5 text-[#f3f5fa] select-none"
     >
       <SubtleBrainBackdrop accent={accent} />
@@ -100,7 +103,7 @@ export function LogoModalViews({
       <div className="fixed top-5 left-5 z-40">
         <CrystalButton hue="neutral" size="sm" onClick={onGoHome}>
           <ArrowRight className="h-3.5 w-3.5" />
-          <span>חזרה</span>
+          <span>{en ? "Back" : "חזרה"}</span>
         </CrystalButton>
       </div>
 
@@ -115,7 +118,7 @@ export function LogoModalViews({
             onClick={() => onSwitchSection('about')}
           >
             <Info className="h-3.5 w-3.5" />
-            <span>אודות</span>
+            <span>{en ? "About" : "אודות"}</span>
           </CrystalButton>
           <CrystalButton
             hue="gold"
@@ -124,7 +127,7 @@ export function LogoModalViews({
             onClick={() => onSwitchSection('contact')}
           >
             <Mail className="h-3.5 w-3.5" />
-            <span>יצירת קשר</span>
+            <span>{en ? "Contact" : "יצירת קשר"}</span>
           </CrystalButton>
           <CrystalButton
             hue="cyan"
@@ -133,7 +136,7 @@ export function LogoModalViews({
             onClick={() => onSwitchSection('login')}
           >
             <LogIn className="h-3.5 w-3.5" />
-            <span>התחברות</span>
+            <span>{en ? "Login" : "התחברות"}</span>
           </CrystalButton>
         </div>
 
