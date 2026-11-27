@@ -22,6 +22,7 @@ import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger
 import { StudioExhibitCard } from './StudioExhibitCard';
 import { SubtleBrainBackdrop } from './SubtleBrainBackdrop';
 import { openUniversalConsentModal } from './UniversalConsentAdapter';
+import { usePublicLanguage, translateText } from '../i18n';
 
 type BotRuntimeState = 'idle' | 'waking' | 'listening' | 'spotlight' | 'collapsed';
 
@@ -58,6 +59,8 @@ export function BotAndSubsView({
   onOpenDomain,
   onOpenLogoSection,
 }: BotAndSubsViewProps) {
+  const language = usePublicLanguage();
+  const en = language === 'en';
   const [mobileView, setMobileView] = useState<'bot' | 'card'>('bot');
 
   // Conversational & Spotlight Runtime State Machine
@@ -68,7 +71,7 @@ export function BotAndSubsView({
     {
       id: 'welcome',
       role: 'bot',
-      text: OPENING_BOT_MESSAGE,
+      text: language === 'en' ? 'Welcome to DUPAMAN. No menus, no endless browsing — tell me what you are looking for and I will bring the right work into focus. Interested in product development, immersive learning or the venture studio?' : OPENING_BOT_MESSAGE,
     },
   ]);
   const [input, setInput] = useState('');
@@ -170,6 +173,7 @@ export function BotAndSubsView({
         body: JSON.stringify({
           message: clean,
           matchedExhibitId: matchedExhibit?.id ?? null,
+          language,
         }),
       });
       if (res.ok) {
@@ -205,7 +209,7 @@ export function BotAndSubsView({
         {
           id: `b-${Date.now()}`,
           role: 'bot',
-          text: `הארתי עבורך את ${matchedExhibit.nodeTitle} — ${matchedExhibit.title}:`,
+          text: en ? `I brought ${translateText(matchedExhibit.nodeTitle, language)} — ${matchedExhibit.title} into focus:` : `הארתי עבורך את ${matchedExhibit.nodeTitle} — ${matchedExhibit.title}:`,
           spotlight: matchedExhibit,
         },
       ]);
@@ -217,7 +221,7 @@ export function BotAndSubsView({
       {
         id: `b-${Date.now()}`,
         role: 'bot',
-        text: 'אפשר לכוון ישירות לפי אחת היצירות: ממשקי מחר, מוח מכונה, למידה חיה, אדריכלות הקשב, רוח ומקור או חדר המיזמים. איזו מהן תרצה שאאיר?',
+        text: (en ? 'I can take you straight to one of the studio worlds: Agentic Interfaces, Machine Intelligence, Immersive Learning, Attention Architecture, Consciousness & Origins or the Venture Studio. Which one should I bring into focus?' : 'אפשר לכוון ישירות לפי אחת היצירות: ממשקי מחר, מוח מכונה, למידה חיה, אדריכלות הקשב, רוח ומקור או חדר המיזמים. איזו מהן תרצה שאאיר?'),
       },
     ]);
   };
@@ -254,11 +258,11 @@ export function BotAndSubsView({
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name.trim() || 'אורח סטודיו';
     if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setFeedback('נא להזין כתובת אימייל תקינה.');
+      setFeedback(en ? "Please enter a valid email address." : "נא להזין כתובת אימייל תקינה.");
       return;
     }
     if (!acceptedTerms) {
-      setFeedback('נא לאשר את תנאי השימוש ומדיניות הפרטיות של הסטודיו.');
+      setFeedback(en ? "Please accept the studio terms and privacy policy." : "נא לאשר את תנאי השימוש ומדיניות הפרטיות של הסטודיו.");
       return;
     }
 
@@ -284,7 +288,7 @@ export function BotAndSubsView({
         setFeedback(d.error || 'אירעה שגיאה בשליחה, נסה שוב.');
       }
     } catch {
-      setFeedback('שגיאת חיבור לשרת, נסה שוב בעוד רגע.');
+      setFeedback(en ? "Connection error. Please try again shortly." : "שגיאת חיבור לשרת, נסה שוב בעוד רגע.");
     } finally {
       setSaving(false);
     }
@@ -298,7 +302,7 @@ export function BotAndSubsView({
 
   return (
     <div
-      dir="rtl"
+      dir={en ? "ltr" : "rtl"}
       className="fixed inset-0 flex h-screen w-screen flex-col items-center justify-between overflow-hidden bg-[#020204] text-[#f3f5fa] select-none"
     >
       <SubtleBrainBackdrop accent="gold" />
@@ -310,7 +314,7 @@ export function BotAndSubsView({
       <div className="fixed top-5 left-5 z-40 flex items-center gap-2">
         <CrystalButton hue="neutral" size="sm" onClick={onGoHome}>
           <ArrowRight className="h-3.5 w-3.5" />
-          <span>חזרה</span>
+          <span>{translateText("חזרה", language)}</span>
         </CrystalButton>
         <div className="flex items-center gap-1.5 lg:hidden">
           <CrystalButton
@@ -320,7 +324,7 @@ export function BotAndSubsView({
             onClick={() => setMobileView('bot')}
           >
             <Bot className="h-3.5 w-3.5" />
-            <span>הבוט המארח</span>
+            <span>{translateText("הבוט המארח", language)}</span>
           </CrystalButton>
           <CrystalButton
             hue="cyan"
@@ -329,7 +333,7 @@ export function BotAndSubsView({
             onClick={() => setMobileView('card')}
           >
             <UserCheck className="h-3.5 w-3.5" />
-            <span>כרטיס ביקור</span>
+            <span>{translateText("כרטיס ביקור", language)}</span>
           </CrystalButton>
         </div>
       </div>
@@ -348,7 +352,7 @@ export function BotAndSubsView({
             style={{ textShadow: '0 4px 24px rgba(2,4,10,0.85)' }}
             className="mt-1 text-2xl font-bold text-white sm:text-3xl"
           >
-            הסטודיו · כרטיס ביקור חי
+            {translateText("הסטודיו · כרטיס ביקור חי", language)}
           </h1>
         </header>
 
@@ -369,7 +373,7 @@ export function BotAndSubsView({
                 <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/12 pb-3">
                   <div className="flex items-center gap-2.5">
                     <Bot className="h-5 w-5 text-[#f8d478]" />
-                    <span className="text-sm font-semibold text-white">הבוט המארח</span>
+                    <span className="text-sm font-semibold text-white">{translateText("הבוט המארח", language)}</span>
                     <span
                       dir="ltr"
                       style={{ fontFamily: 'var(--font-display)' }}
@@ -397,11 +401,11 @@ export function BotAndSubsView({
                       <button
                         type="button"
                         onClick={handleCollapseSpotlight}
-                        title="חזרה למצב שקט"
+                        title={en ? "Return to idle mode" : "חזרה למצב שקט"}
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-white/15 bg-white/[0.04] px-2 py-0.5 text-[10px] text-[#cfd7e6] hover:text-white"
                       >
                         <RotateCcw className="h-3 w-3" />
-                        <span>נקה זרקור</span>
+                        <span>{translateText("נקה זרקור", language)}</span>
                       </button>
                     )}
                   </div>
@@ -484,7 +488,7 @@ export function BotAndSubsView({
                         lastActivityRef.current = Date.now();
                         setInput(e.target.value);
                       }}
-                      placeholder="אמור מה אתה מחפש — ממשקי מחר, למידה חיה, חדר המיזמים..."
+                      placeholder={translateText("אמור מה אתה מחפש — ממשקי מחר, למידה חיה, חדר המיזמים...", language)}
                       className="w-full bg-transparent px-2.5 py-1.5 text-xs text-white placeholder-[#93a0b8] outline-none sm:text-sm"
                     />
                     <CrystalButton
@@ -494,7 +498,7 @@ export function BotAndSubsView({
                       disabled={!input.trim() || thinking}
                     >
                       <Send className="h-3.5 w-3.5" />
-                      <span>האר</span>
+                      <span>{translateText("האר", language)}</span>
                     </CrystalButton>
                   </form>
                 </div>
@@ -553,7 +557,7 @@ export function BotAndSubsView({
                         type="text"
                         value={name}
                         onChange={(e) => setName(e.target.value)}
-                        placeholder="שם מלא"
+                        placeholder={translateText("שם מלא", language)}
                         className="rounded-xl border border-white/18 bg-white/[0.04] px-3 py-2 text-xs text-white placeholder-[#8e9bb2] outline-none focus:border-[#84e8ff]/55"
                       />
                       <input
@@ -568,7 +572,7 @@ export function BotAndSubsView({
                     </div>
 
                     <div>
-                      <div className="mb-1.5 text-[11px] text-[#cfd7e6]">בחר צומת עניין:</div>
+                      <div className="mb-1.5 text-[11px] text-[#cfd7e6]">{en ? "Choose areas of interest:" : "בחר צומת עניין:"}</div>
                       <div className="flex flex-wrap gap-1.5">
                         {NODE_CHOICES.map((nodeName) => {
                           const on = selectedNodes.includes(nodeName);
@@ -626,7 +630,7 @@ export function BotAndSubsView({
                       className="w-full"
                     >
                       <Sparkles className="h-3.5 w-3.5" />
-                      <span>{saving ? 'שולח...' : 'שליחת בקשה ישירה לסטודיו'}</span>
+                      <span>{saving ? translateText('שולח...', language) : translateText('שליחת בקשה ישירה לסטודיו', language)}</span>
                     </CrystalButton>
                   </div>
                 </form>

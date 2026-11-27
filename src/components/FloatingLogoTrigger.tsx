@@ -4,6 +4,7 @@ import { loadProcessedOverlayImage } from './PureNeuralFlythrough';
 import { CrystalButton } from './GlassPrimitives';
 import { openUniversalConsentModal } from './UniversalConsentAdapter';
 import { useOwnerSession } from '../data/exhibitsStore';
+import { usePublicLanguage, setPublicLanguage } from '../i18n';
 
 export type LogoDestination = 'about' | 'contact' | 'login' | 'admin';
 
@@ -19,6 +20,8 @@ export function FloatingLogoTrigger({
   onNavigate,
 }: FloatingLogoTriggerProps) {
   const [open, setOpen] = useState(false);
+  const language = usePublicLanguage();
+  const en = language === 'en';
   const [logoSrc, setLogoSrc] = useState<string | null>(null);
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const ownerSession = useOwnerSession();
@@ -59,11 +62,11 @@ export function FloatingLogoTrigger({
   }, []);
 
   const menuItems: Array<{ id: LogoDestination; label: string; icon: typeof Info; hue: 'cyan' | 'gold' }> = [
-    { id: 'about', label: 'אודות', icon: Info, hue: 'cyan' },
-    { id: 'contact', label: 'יצירת קשר', icon: Mail, hue: 'gold' },
-    { id: 'login', label: 'התחברות', icon: LogIn, hue: 'cyan' },
+    { id: 'about', label: en ? 'About' : 'אודות', icon: Info, hue: 'cyan' },
+    { id: 'contact', label: en ? 'Contact' : 'יצירת קשר', icon: Mail, hue: 'gold' },
+    { id: 'login', label: en ? 'Studio login' : 'התחברות', icon: LogIn, hue: 'cyan' },
     ...(isOwner
-      ? [{ id: 'admin' as LogoDestination, label: 'לוח בקרה · תכנים', icon: LayoutDashboard, hue: 'gold' as const }]
+      ? [{ id: 'admin' as LogoDestination, label: en ? 'Studio Admin' : 'לוח בקרה · תכנים', icon: LayoutDashboard, hue: 'gold' as const }]
       : []),
   ];
 
@@ -71,6 +74,8 @@ export function FloatingLogoTrigger({
     return (
       <div
         ref={wrapRef}
+        onMouseEnter={() => setOpen(true)}
+        onMouseLeave={() => setOpen(false)}
         style={{
           top: 'max(10px, 1.8vh)',
           right: 'max(16px, 2.5vw)',
@@ -86,13 +91,13 @@ export function FloatingLogoTrigger({
             e.stopPropagation();
             setOpen((v) => !v);
           }}
-          aria-label="תפריט DUPAMAN — אודות, יצירת קשר, התחברות"
+          aria-label={en ? "DUPAMAN menu — About, Contact, Login" : "תפריט DUPAMAN — אודות, יצירת קשר, התחברות"}
           className="h-full w-full cursor-pointer rounded-full bg-transparent outline-none"
         />
 
         {open && (
           <div
-            dir="rtl"
+            dir={en ? "ltr" : "rtl"}
             onPointerDown={(e) => e.stopPropagation()}
             style={{
               background:
@@ -121,6 +126,7 @@ export function FloatingLogoTrigger({
                 </CrystalButton>
               );
             })}
+            <div className="mt-1 flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-2 py-1.5"><span className="px-1 text-[10px] uppercase tracking-[0.22em] text-white/45">Language</span><div className="flex items-center gap-1"><button type="button" aria-pressed={language === "en"} onClick={() => setPublicLanguage("en")} className="rounded-lg px-2.5 py-1 text-[10px] font-semibold tracking-wider text-white/80 hover:bg-white/10">EN</button><button type="button" aria-pressed={language === "he"} onClick={() => setPublicLanguage("he")} className="rounded-lg px-2.5 py-1 text-[10px] font-semibold text-white/80 hover:bg-white/10">עברית</button></div></div>
             <CrystalButton
               hue="gold"
               size="sm"
@@ -131,7 +137,7 @@ export function FloatingLogoTrigger({
               className="w-full justify-start"
             >
               <ShieldCheck className="h-3.5 w-3.5 opacity-85" />
-              <span>תנאים ועוגיות</span>
+              <span>{en ? "Terms & privacy" : "תנאים ועוגיות"}</span>
             </CrystalButton>
           </div>
         )}
@@ -140,11 +146,11 @@ export function FloatingLogoTrigger({
   }
 
   return (
-    <div ref={wrapRef} className="fixed top-4 right-5 z-40">
+    <div ref={wrapRef} onMouseEnter={() => setOpen(true)} onMouseLeave={() => setOpen(false)} className="fixed top-4 right-5 z-40">
       <button
         type="button"
         onClick={() => setOpen((v) => !v)}
-        aria-label="תפריט DUPAMAN — אודות, יצירת קשר, התחברות"
+        aria-label={en ? "DUPAMAN menu — About, Contact, Login" : "תפריט DUPAMAN — אודות, יצירת קשר, התחברות"}
         className="flex h-16 w-16 cursor-pointer items-center justify-center rounded-full bg-transparent transition-transform duration-200 hover:scale-105 outline-none sm:h-20 sm:w-20"
       >
         {logoSrc ? (
@@ -162,7 +168,7 @@ export function FloatingLogoTrigger({
 
       {open && (
         <div
-          dir="rtl"
+          dir={en ? "ltr" : "rtl"}
           style={{
             background:
               'linear-gradient(135deg, rgba(255,255,255,0.11) 0%, rgba(12,18,32,0.34) 52%, rgba(255,255,255,0.04) 100%)',
@@ -191,6 +197,7 @@ export function FloatingLogoTrigger({
               </CrystalButton>
             );
           })}
+          <div className="mt-1 flex items-center justify-between rounded-xl border border-white/10 bg-black/20 px-2 py-1.5"><span className="px-1 text-[10px] uppercase tracking-[0.22em] text-white/45">Language</span><div className="flex items-center gap-1"><button type="button" aria-pressed={language === "en"} onClick={() => setPublicLanguage("en")} className="rounded-lg px-2.5 py-1 text-[10px] font-semibold tracking-wider text-white/80 hover:bg-white/10">EN</button><button type="button" aria-pressed={language === "he"} onClick={() => setPublicLanguage("he")} className="rounded-lg px-2.5 py-1 text-[10px] font-semibold text-white/80 hover:bg-white/10">עברית</button></div></div>
           <CrystalButton
             hue="gold"
             size="sm"

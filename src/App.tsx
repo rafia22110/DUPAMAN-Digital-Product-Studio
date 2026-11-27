@@ -9,6 +9,7 @@ import { BotAndSubsView } from './components/BotAndSubsView';
 import { LogoModalViews } from './components/LogoModalViews';
 import { StudioAdminPanel } from './components/StudioAdminPanel';
 import { UniversalConsentAdapter } from './components/UniversalConsentAdapter';
+import { usePublicLanguage } from './i18n';
 
 type ActiveRoute =
   | { kind: 'home' }
@@ -18,6 +19,7 @@ type ActiveRoute =
   | { kind: 'admin' };
 
 export default function App() {
+  const language = usePublicLanguage();
   const ownerSession = useOwnerSession();
   const isOwner = Boolean(ownerSession?.isOwner);
   const [route, setRoute] = useState<ActiveRoute>(() => {
@@ -161,7 +163,7 @@ export default function App() {
 
   // HOME SCREEN: 100% Pure Zero-Scroll 7-Brain Constellation (No Studio Bottom Banner)
   return (
-    <div className="fixed inset-0 h-screen w-screen overflow-hidden bg-[#020204] select-none">
+    <div lang={language} dir={language === "he" ? "rtl" : "ltr"} className="fixed inset-0 h-screen w-screen overflow-hidden bg-[#020204] select-none">
       <PureNeuralFlythrough
         videoUrl={null}
         aspectRatio="16:9"

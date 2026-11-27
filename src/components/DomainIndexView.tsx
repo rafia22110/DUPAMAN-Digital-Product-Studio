@@ -6,6 +6,7 @@ import { CrystalButton } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { StudioExhibitCard } from './StudioExhibitCard';
 import { SubtleBrainBackdrop } from './SubtleBrainBackdrop';
+import { usePublicLanguage, translateText } from '../i18n';
 
 interface DomainIndexViewProps {
   domain: BrainDomain;
@@ -22,6 +23,8 @@ export function DomainIndexView({
   onOpenBot,
   onOpenLogoSection,
 }: DomainIndexViewProps) {
+  const language = usePublicLanguage();
+  const en = language === 'en';
   const allExhibits = useStudioExhibits();
   const domainExhibits = useMemo(
     () => allExhibits.filter((e) => e.domainId === domain.id),
@@ -47,7 +50,7 @@ export function DomainIndexView({
 
   return (
     <div
-      dir="rtl"
+      dir={en ? "ltr" : "rtl"}
       className="fixed inset-0 flex h-screen w-screen flex-col items-center justify-between overflow-hidden bg-[#020204] text-[#f3f5fa] select-none"
     >
       <SubtleBrainBackdrop accent={isGold ? 'gold' : 'cyan'} />
@@ -59,15 +62,15 @@ export function DomainIndexView({
       <div className="fixed top-5 left-5 z-40 flex items-center gap-2">
         <CrystalButton hue="neutral" size="sm" onClick={onGoHome}>
           <ArrowRight className="h-3.5 w-3.5" />
-          <span>חזרה</span>
+          <span>{en ? "Back" : "חזרה"}</span>
         </CrystalButton>
         <CrystalButton
           hue="gold"
           size="sm"
-          onClick={() => onOpenBot(`האר לי את ${domain.title}`, domain.shortTitle)}
+          onClick={() => onOpenBot(`האר לי את ${translateText(domain.title, language)}`, domain.shortTitle)}
         >
           <Bot className="h-3.5 w-3.5 text-[#f8d478]" />
-          <span className="hidden sm:inline">הסטודיו · כרטיס ביקור חי</span>
+          <span className="hidden sm:inline">{en ? "Studio · Live introduction" : "הסטודיו · כרטיס ביקור חי"}</span>
         </CrystalButton>
       </div>
 
@@ -85,17 +88,17 @@ export function DomainIndexView({
             </span>
             <span className="opacity-40">·</span>
             <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }}>
-              {domain.kicker}
+              {translateText(domain.kicker, language)}
             </span>
           </div>
           <h1
             style={{ textShadow: '0 4px 24px rgba(2,4,10,0.85)' }}
             className="mt-1 text-2xl font-bold tracking-tight text-white sm:text-3xl"
           >
-            {domain.title}
+            {translateText(domain.title, language)}
           </h1>
           <p className="mt-1 text-xs leading-relaxed text-[#d7dfee]/85 sm:text-sm">
-            {domain.description}
+            {translateText(domain.description, language)}
           </p>
         </header>
 
@@ -122,7 +125,7 @@ export function DomainIndexView({
                   onClick={() => setActiveIdx(idx)}
                   className="px-3 py-1 text-[11px]"
                 >
-                  <span>{item.title}</span>
+                  <span>{translateText(item.title, language)}</span>
                 </CrystalButton>
               ))}
               <CrystalButton
@@ -144,13 +147,13 @@ export function DomainIndexView({
               />
             </div>
           ) : (
-            <div className="h-full w-full" aria-label="דף נקי ומוכן לתכנים" />
+            <div className="h-full w-full" aria-label={en ? "Content area" : "דף נקי ומוכן לתכנים"} />
           )}
         </section>
 
         {/* Minimal Floating Glass Switcher Across All 6 Locked Studio Nodes */}
         <nav
-          aria-label="מעבר בין 6 הצמתים"
+          aria-label={en ? "Navigate the six domains" : "מעבר בין 6 הצמתים"}
           className="mx-auto flex shrink-0 flex-wrap items-center justify-center gap-1.5"
         >
           {DUPAMAN_DOMAINS.map((d) => (
@@ -169,7 +172,7 @@ export function DomainIndexView({
               >
                 {d.indexLabel}
               </span>
-              <span>{d.shortTitle}</span>
+              <span>{translateText(d.shortTitle, language)}</span>
             </CrystalButton>
           ))}
         </nav>

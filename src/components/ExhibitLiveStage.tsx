@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from 'react';
+import { usePublicLanguage, translateText } from '../i18n';
 import { Activity, Cpu, Eye, Layers, ShieldCheck, Sparkles, Terminal } from 'lucide-react';
 import type { StudioExhibitSample } from '../data/studioSamples';
 
@@ -123,6 +124,8 @@ function Live3DClassroomCanvas({ mode }: { mode: 'cube' | 'orbit' }) {
  * Turns static titles into a live, luxury Studio presentation inside the glass card.
  */
 export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
+  const language = usePublicLanguage();
+  const en = language === 'en';
   // Node 01: Live Banking Agent State
   const [bankAction, setBankAction] = useState<'liquidity' | 'fx' | 'transfer'>('liquidity');
   // Node 02: Alveare Multi-Agent Pipeline step
@@ -164,7 +167,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
         <div className="flex items-center justify-between text-[11px] text-[#84e8ff]">
           <span className="inline-flex items-center gap-1.5 font-medium">
             <ShieldCheck className="h-3.5 w-3.5" />
-            <span>תצוגת סוכן פעילה</span>
+            <span>{translateText("תצוגת סוכן פעילה", language)}</span>
           </span>
           <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-[#fff1c7]">
             {active.metric}
@@ -176,8 +179,8 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
             <Terminal className="h-3 w-3" />
             <span>SPOTLIGHT RESPONSE</span>
           </div>
-          <div className="mt-1 text-sm font-bold text-white">{active.title}</div>
-          <p className="mt-1 text-xs leading-relaxed text-[#d7e2f5]">{active.detail}</p>
+          <div className="mt-1 text-sm font-bold text-white">{translateText(active.title, language)}</div>
+          <p className="mt-1 text-xs leading-relaxed text-[#d7e2f5]">{translateText(active.detail, language)}</p>
         </div>
 
         <div className="flex flex-wrap gap-1.5">
@@ -213,7 +216,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
         <div className="flex items-center justify-between text-[11px] text-[#84e8ff]">
           <span className="inline-flex items-center gap-1.5 font-medium">
             <Cpu className="h-3.5 w-3.5" />
-            <span>ארכיטקטורת Alveare חיה</span>
+            <span>{translateText("ארכיטקטורת Alveare חיה", language)}</span>
           </span>
           <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-emerald-300">
             LIVE · 3 NODES
@@ -248,7 +251,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
           <div dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-[10px] text-[#84e8ff]">
             {current.role}
           </div>
-          <p className="mt-1 text-xs leading-relaxed text-[#dce5f5]">{current.desc}</p>
+          <p className="mt-1 text-xs leading-relaxed text-[#dce5f5]">{translateText(current.desc, language)}</p>
         </div>
       </div>
     );
@@ -260,7 +263,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
         <div className="flex items-center justify-between text-[11px] text-[#f8d478]">
           <span className="inline-flex items-center gap-1.5 font-medium">
             <Sparkles className="h-3.5 w-3.5" />
-            <span>סצנת WebGL 3D חיה</span>
+            <span>{translateText("סצנת WebGL 3D חיה", language)}</span>
           </span>
           <div className="flex gap-1">
             <button
@@ -293,7 +296,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
         </div>
 
         <div className="flex items-center justify-between text-[11px] text-[#dce4f4]">
-          <span>אינטראקציית כיתה בתלת-ממד מעל Google Meet</span>
+          <span>{translateText("אינטראקציית כיתה בתלת-ממד מעל Google Meet", language)}</span>
           <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-[#f8d478]">
             60 FPS
           </span>
@@ -313,7 +316,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
         <div className="flex items-center justify-between text-[11px] text-[#84e8ff]">
           <span className="inline-flex items-center gap-1.5 font-medium">
             <Activity className="h-3.5 w-3.5" />
-            <span>מפת קשב אדפטיבית</span>
+            <span>{translateText("מפת קשב אדפטיבית", language)}</span>
           </span>
           <div className="flex gap-1">
             <button
@@ -373,7 +376,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
         <div className="flex items-center justify-between text-[11px] text-[#84e8ff]">
           <span className="inline-flex items-center gap-1.5 font-medium">
             <Layers className="h-3.5 w-3.5" />
-            <span>שכבות המחקר (170 מקורות)</span>
+            <span>{translateText("שכבות המחקר (170 מקורות)", language)}</span>
           </span>
           <span dir="ltr" style={{ fontFamily: 'var(--font-display)' }} className="text-[#f8d478]">
             SYNAPSE MAP
@@ -413,7 +416,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
       <div className="flex items-center justify-between text-[11px] text-[#f8d478]">
         <span className="inline-flex items-center gap-1.5 font-medium">
           <Eye className="h-3.5 w-3.5" />
-          <span>סימולציית Bio-Oracle</span>
+          <span>{translateText("סימולציית Bio-Oracle", language)}</span>
         </span>
         <div className="flex gap-1">
           <button
@@ -450,7 +453,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
             {scanLayer === 'ocular' ? '94.2%' : 'Phase Ready'}
           </div>
           <div className="text-[11px] text-[#cfd7e6]">
-            {scanLayer === 'ocular' ? 'דיוק זיהוי מיקרו-תבניות' : 'תיק השקעה ורגולציה ממופה'}
+            {translateText(scanLayer === 'ocular' ? 'דיוק זיהוי מיקרו-תבניות' : 'תיק השקעה ורגולציה ממופה', language)}
           </div>
         </div>
 
@@ -462,7 +465,7 @@ export function ExhibitLiveStage({ exhibit }: ExhibitLiveStageProps) {
             {scanLayer === 'ocular' ? 'Non-Invasive' : 'Seed / Angel'}
           </div>
           <div className="text-[11px] text-[#cfd7e6]">
-            {scanLayer === 'ocular' ? 'אבחון מהיר ממצלמה רגילה' : 'מוכן להצגה למשקיעים'}
+            {translateText(scanLayer === 'ocular' ? 'אבחון מהיר ממצלמה רגילה' : 'מוכן להצגה למשקיעים', language)}
           </div>
         </div>
       </div>

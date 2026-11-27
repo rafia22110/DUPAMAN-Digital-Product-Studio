@@ -13,6 +13,7 @@ import {
 import { CrystalButton, CrystalCard3D } from './GlassPrimitives';
 import { FloatingLogoTrigger, type LogoDestination } from './FloatingLogoTrigger';
 import { SubtleBrainBackdrop } from './SubtleBrainBackdrop';
+import { usePublicLanguage } from '../i18n';
 import {
   STUDIO_OWNER_NAME,
   isOwnerEmail,
@@ -33,6 +34,8 @@ export function LogoModalViews({
   onGoHome,
   onOpenBot,
 }: LogoModalViewsProps) {
+  const language = usePublicLanguage();
+  const en = language === 'en';
   // Contact form
   const [contactName, setContactName] = useState('');
   const [contactEmail, setContactEmail] = useState('');
@@ -84,7 +87,7 @@ export function LogoModalViews({
 
   return (
     <div
-      dir="rtl"
+      dir={en ? "ltr" : "rtl"}
       className="fixed inset-0 flex h-screen w-screen flex-col items-center justify-center overflow-hidden bg-[#020204] px-5 text-[#f3f5fa] select-none"
     >
       <SubtleBrainBackdrop accent={accent} />
@@ -100,7 +103,7 @@ export function LogoModalViews({
       <div className="fixed top-5 left-5 z-40">
         <CrystalButton hue="neutral" size="sm" onClick={onGoHome}>
           <ArrowRight className="h-3.5 w-3.5" />
-          <span>חזרה</span>
+          <span>{en ? "Back" : "חזרה"}</span>
         </CrystalButton>
       </div>
 
@@ -115,7 +118,7 @@ export function LogoModalViews({
             onClick={() => onSwitchSection('about')}
           >
             <Info className="h-3.5 w-3.5" />
-            <span>אודות</span>
+            <span>{en ? "About" : "אודות"}</span>
           </CrystalButton>
           <CrystalButton
             hue="gold"
@@ -124,7 +127,7 @@ export function LogoModalViews({
             onClick={() => onSwitchSection('contact')}
           >
             <Mail className="h-3.5 w-3.5" />
-            <span>יצירת קשר</span>
+            <span>{en ? "Contact" : "יצירת קשר"}</span>
           </CrystalButton>
           <CrystalButton
             hue="cyan"
@@ -133,7 +136,7 @@ export function LogoModalViews({
             onClick={() => onSwitchSection('login')}
           >
             <LogIn className="h-3.5 w-3.5" />
-            <span>התחברות</span>
+            <span>{en ? "Login" : "התחברות"}</span>
           </CrystalButton>
         </div>
 
@@ -146,24 +149,21 @@ export function LogoModalViews({
                   <div className="font-mono text-[11px] tracking-widest text-[#84e8ff]">
                     DUPAMAN · HERITAGE · EDUCATION · AI
                   </div>
-                  <h1 className="mt-1.5 text-2xl font-bold text-white">אודות דופמין</h1>
+                  <h1 className="mt-1.5 text-2xl font-bold text-white">{en ? "About DUPAMAN" : "אודות דופמין"}</h1>
                 </div>
 
                 <p className="text-sm leading-7 text-[#e6eaf3]">
-                  <strong>דופמין (DUPAMAN)</strong> מאת <strong>רפאל ארגנטי</strong> הוא מרחב ידע
-                  מרחבי ללא גלילה המחבר בין שישה עולמות תוכן מאומתים: מורשת ופילוסופיה יהודית,
-                  חינוך ולמידה, פסיכולוגיה ובריאות, בינה מלאכותית, מדעי המוח, ומדע וחלל.
+                  {en ? <><strong>DUPAMAN</strong> is an independent creative technology studio founded by <strong>Rafael Argenti</strong>. We build intelligent digital products and immersive experiences across heritage, learning, human cognition, artificial intelligence, neuroscience and science.</> : <><strong>דופמין (DUPAMAN)</strong> מאת <strong>רפאל ארגנטי</strong> הוא מרחב ידע מרחבי ללא גלילה המחבר בין שישה עולמות תוכן מאומתים: מורשת ופילוסופיה יהודית, חינוך ולמידה, פסיכולוגיה ובריאות, בינה מלאכותית, מדעי המוח ומדע וחלל.</>}
                 </p>
 
                 <p className="text-xs leading-6 text-[#cfd7e6] sm:text-sm">
-                  במקום פיד רועש וגלילה אינסופית, האתר מציע חוויית זכוכית שקופה ורגועה: כל מוח
-                  מוביל לאינדקס מקורות נקי, והמוח המרכזי מפעיל את הבוט החכם ומנהל המנויים.
+                  {en ? "Instead of noisy feeds and endless scrolling, DUPAMAN offers a calm, spatial interface. Each world opens a focused index, while the central studio connects you with the AI host and the people behind the work." : "במקום פיד רועש וגלילה אינסופית, האתר מציע חוויית זכוכית כהה, שקטה ומדויקת: כל עולם מוביל לאינדקס ממוקד, והסטודיו המרכזי מחבר לבוט החכם ולאנשים שמאחורי היצירה."}
                 </p>
 
                 <div className="mt-2 flex flex-wrap gap-2.5 pt-2">
                   <CrystalButton hue="gold" size="md" onClick={() => onOpenBot()}>
                     <Bot className="h-4 w-4 text-[#f8d478]" />
-                    <span>כניסה לבוט ולמנויים</span>
+                    <span>{en ? "Meet the AI host" : "כניסה לבוט ולמנויים"}</span>
                   </CrystalButton>
                   <CrystalButton
                     hue="cyan"
@@ -171,7 +171,7 @@ export function LogoModalViews({
                     onClick={() => onSwitchSection('contact')}
                   >
                     <Mail className="h-4 w-4 text-[#84e8ff]" />
-                    <span>יצירת קשר</span>
+                    <span>{en ? "Contact" : "יצירת קשר"}</span>
                   </CrystalButton>
                 </div>
               </div>
@@ -183,18 +183,18 @@ export function LogoModalViews({
                   <div className="font-mono text-[11px] tracking-widest text-[#f8d478]">
                     DUPAMAN · DIRECT CONTACT
                   </div>
-                  <h1 className="mt-1.5 text-2xl font-bold text-white">יצירת קשר</h1>
+                  <h1 className="mt-1.5 text-2xl font-bold text-white">{en ? "Get in touch" : "יצירת קשר"}</h1>
                   <p className="mt-1 text-xs text-[#cfd7e6]">
-                    לשיתופי פעולה, סדנאות, רעיונות או שאלות לרפאל ארגנטי.
+                    {en ? "For partnerships, commissions, ideas or a conversation with the studio." : "לשיתופי פעולה, סדנאות, רעיונות או שאלות לרפאל ארגנטי."}
                   </p>
                 </div>
 
                 {contactSent ? (
                   <div className="flex flex-col items-center gap-3 py-6 text-center">
                     <CheckCircle2 className="h-9 w-9 text-emerald-300" />
-                    <div className="text-base font-semibold text-white">ההודעה נשלחה בהצלחה</div>
+                    <div className="text-base font-semibold text-white">{en ? "Message sent successfully" : "ההודעה נשלחה בהצלחה"}</div>
                     <p className="text-xs text-[#d6dfee]">
-                      תודה {contactName || ''}, נחזור אליך בקרוב לכתובת {contactEmail}.
+                      {en ? `Thank you ${contactName || ''}. We will get back to you at ${contactEmail}.` : `תודה ${contactName || ''}, נחזור אליך בקרוב לכתובת ${contactEmail}.`}
                     </p>
                     <CrystalButton
                       hue="gold"
@@ -204,7 +204,7 @@ export function LogoModalViews({
                         setContactMsg('');
                       }}
                     >
-                      שליחת הודעה נוספת
+                      {en ? "Send another message" : "שליחת הודעה נוספת"}
                     </CrystalButton>
                   </div>
                 ) : (
@@ -215,7 +215,7 @@ export function LogoModalViews({
                         required
                         value={contactName}
                         onChange={(e) => setContactName(e.target.value)}
-                        placeholder="שם"
+                        placeholder={en ? "Name" : "שם"}
                         className="rounded-xl border border-white/18 bg-white/[0.04] px-3.5 py-2.5 text-xs text-white placeholder-[#8e9bb2] outline-none focus:border-[#f8d478]/55"
                       />
                       <input
@@ -233,12 +233,12 @@ export function LogoModalViews({
                       required
                       value={contactMsg}
                       onChange={(e) => setContactMsg(e.target.value)}
-                      placeholder="הודעה..."
+                      placeholder={en ? "Your message..." : "הודעה..."}
                       className="resize-none rounded-xl border border-white/18 bg-white/[0.04] px-3.5 py-2.5 text-xs text-white placeholder-[#8e9bb2] outline-none focus:border-[#f8d478]/55"
                     />
                     <CrystalButton hue="gold" size="md" type="submit" className="mt-1 w-full">
                       <Send className="h-3.5 w-3.5" />
-                      <span>שלח פנייה</span>
+                      <span>{en ? "Send message" : "שלח פנייה"}</span>
                     </CrystalButton>
                   </form>
                 )}
@@ -251,14 +251,14 @@ export function LogoModalViews({
                   <div className="font-mono text-[11px] tracking-widest text-[#84e8ff]">
                     DUPAMAN · MEMBER ACCESS
                   </div>
-                  <h1 className="mt-1.5 text-2xl font-bold text-white">התחברות לחשבון</h1>
+                  <h1 className="mt-1.5 text-2xl font-bold text-white">{en ? "Studio access" : "התחברות לחשבון"}</h1>
                 </div>
 
                 {session ? (
                   <div className="flex flex-col items-center gap-3 py-4 text-center">
                     <CheckCircle2 className="h-9 w-9 text-[#84e8ff]" />
                     <div className="text-base font-semibold text-white">
-                      מחובר כ-{session.name}
+                      {en ? `Signed in as ${session.name}` : `מחובר כ-${session.name}`}
                     </div>
                     <div className="font-mono text-xs text-[#c7d3e6]">{session.email}</div>
                     <div className="mt-2 flex flex-wrap justify-center gap-2">
@@ -269,16 +269,16 @@ export function LogoModalViews({
                           onClick={() => onSwitchSection('admin')}
                         >
                           <LayoutDashboard className="h-3.5 w-3.5 text-[#f8d478]" />
-                          <span>לוח בקרה · ניהול תכנים</span>
+                          <span>{en ? "Studio Admin" : "לוח בקרה · ניהול תכנים"}</span>
                         </CrystalButton>
                       )}
                       <CrystalButton hue="gold" size="sm" onClick={() => onOpenBot()}>
                         <Bot className="h-3.5 w-3.5 text-[#f8d478]" />
-                        <span>למנהל המנויים והבוט</span>
+                        <span>{en ? "Open AI host & subscriptions" : "למנהל המנויים והבוט"}</span>
                       </CrystalButton>
                       <CrystalButton hue="neutral" size="sm" onClick={handleLogout}>
                         <LogOut className="h-3.5 w-3.5" />
-                        <span>התנתק</span>
+                        <span>{en ? "Sign out" : "התנתק"}</span>
                       </CrystalButton>
                     </div>
                   </div>
@@ -304,7 +304,7 @@ export function LogoModalViews({
                     />
                     <CrystalButton hue="cyan" size="md" type="submit" className="mt-1 w-full">
                       <LogIn className="h-3.5 w-3.5" />
-                      <span>כניסה למערכת</span>
+                      <span>{en ? "Sign in" : "כניסה למערכת"}</span>
                     </CrystalButton>
                   </form>
                 )}

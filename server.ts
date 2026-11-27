@@ -653,8 +653,9 @@ async function startServer() {
     }
 
     try {
-      const { message, activeSubscriber, subscribersCount } = req.body as {
+      const { message, activeSubscriber, subscribersCount, language } = req.body as {
         message?: string;
+        language?: 'en' | 'he';
         activeSubscriber?: { name?: string; status?: string; topics?: string[]; id?: string } | null;
         subscribersCount?: number;
       };
@@ -739,14 +740,16 @@ async function startServer() {
         activeSubscriber
           ? `פונה פעיל: ${activeSubscriber.name || ''} (${activeSubscriber.id || ''})`
           : '',
-        'ענה בעברית תמציתית, אלגנטית וחמה (עד 2-3 משפטים) והפנה ליצירה המתאימה.',
+        language === 'en'
+          ? 'Respond in concise, elegant, warm English (2–3 sentences maximum). Preserve official product names and direct the visitor to the most relevant studio work.'
+          : 'ענה בעברית תמציתית, אלגנטית וחמה (עד 2-3 משפטים) והפנה ליצירה המתאימה.',
       ]
         .filter(Boolean)
         .join('\n');
 
       const response = await ai.models.generateContent({
         model: 'gemini-2.5-flash',
-        contents: `${context}\n\nשאלת המשתמש: ${userMsg}`,
+        contents: `${context}\n\n${language === 'en' ? 'Visitor question' : 'שאלת המשתמש'}: ${userMsg}`,
       });
 
       const reply = response.text?.trim();
