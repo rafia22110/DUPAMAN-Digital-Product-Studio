@@ -257,11 +257,11 @@ export function BotAndSubsView({
     const cleanEmail = email.trim().toLowerCase();
     const cleanName = name.trim() || 'אורח סטודיו';
     if (!cleanEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(cleanEmail)) {
-      setFeedback('נא להזין כתובת אימייל תקינה.');
+      setFeedback(en ? "Please enter a valid email address." : "נא להזין כתובת אימייל תקינה.");
       return;
     }
     if (!acceptedTerms) {
-      setFeedback('נא לאשר את תנאי השימוש ומדיניות הפרטיות של הסטודיו.');
+      setFeedback(en ? "Please accept the studio terms and privacy policy." : "נא לאשר את תנאי השימוש ומדיניות הפרטיות של הסטודיו.");
       return;
     }
 
@@ -287,7 +287,7 @@ export function BotAndSubsView({
         setFeedback(d.error || 'אירעה שגיאה בשליחה, נסה שוב.');
       }
     } catch {
-      setFeedback('שגיאת חיבור לשרת, נסה שוב בעוד רגע.');
+      setFeedback(en ? "Connection error. Please try again shortly." : "שגיאת חיבור לשרת, נסה שוב בעוד רגע.");
     } finally {
       setSaving(false);
     }
@@ -351,7 +351,7 @@ export function BotAndSubsView({
             style={{ textShadow: '0 4px 24px rgba(2,4,10,0.85)' }}
             className="mt-1 text-2xl font-bold text-white sm:text-3xl"
           >
-            הסטודיו · כרטיס ביקור חי
+            {translateText("הסטודיו · כרטיס ביקור חי", language)}
           </h1>
         </header>
 

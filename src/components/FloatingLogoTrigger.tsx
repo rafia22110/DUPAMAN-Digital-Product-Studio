@@ -66,7 +66,7 @@ export function FloatingLogoTrigger({
     { id: 'contact', label: en ? 'Contact' : 'יצירת קשר', icon: Mail, hue: 'gold' },
     { id: 'login', label: en ? 'Studio login' : 'התחברות', icon: LogIn, hue: 'cyan' },
     ...(isOwner
-      ? [{ id: 'admin' as LogoDestination, label: 'לוח בקרה · תכנים', icon: LayoutDashboard, hue: 'gold' as const }]
+      ? [{ id: 'admin' as LogoDestination, label: en ? 'Studio Admin' : 'לוח בקרה · תכנים', icon: LayoutDashboard, hue: 'gold' as const }]
       : []),
   ];
 

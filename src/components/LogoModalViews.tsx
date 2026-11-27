@@ -153,14 +153,11 @@ export function LogoModalViews({
                 </div>
 
                 <p className="text-sm leading-7 text-[#e6eaf3]">
-                  <strong>דופמין (DUPAMAN)</strong> מאת <strong>רפאל ארגנטי</strong> הוא מרחב ידע
-                  מרחבי ללא גלילה המחבר בין שישה עולמות תוכן מאומתים: מורשת ופילוסופיה יהודית,
-                  חינוך ולמידה, פסיכולוגיה ובריאות, בינה מלאכותית, מדעי המוח, ומדע וחלל.
+                  {en ? <><strong>DUPAMAN</strong> is an independent creative technology studio founded by <strong>Rafael Argenti</strong>. We build intelligent digital products and immersive experiences across heritage, learning, human cognition, artificial intelligence, neuroscience and science.</> : <><strong>דופמין (DUPAMAN)</strong> מאת <strong>רפאל ארגנטי</strong> הוא מרחב ידע מרחבי ללא גלילה המחבר בין שישה עולמות תוכן מאומתים: מורשת ופילוסופיה יהודית, חינוך ולמידה, פסיכולוגיה ובריאות, בינה מלאכותית, מדעי המוח ומדע וחלל.</>}
                 </p>
 
                 <p className="text-xs leading-6 text-[#cfd7e6] sm:text-sm">
-                  במקום פיד רועש וגלילה אינסופית, האתר מציע חוויית זכוכית שקופה ורגועה: כל מוח
-                  מוביל לאינדקס מקורות נקי, והמוח המרכזי מפעיל את הבוט החכם ומנהל המנויים.
+                  {en ? "Instead of noisy feeds and endless scrolling, DUPAMAN offers a calm, spatial interface. Each world opens a focused index, while the central studio connects you with the AI host and the people behind the work." : "במקום פיד רועש וגלילה אינסופית, האתר מציע חוויית זכוכית כהה, שקטה ומדויקת: כל עולם מוביל לאינדקס ממוקד, והסטודיו המרכזי מחבר לבוט החכם ולאנשים שמאחורי היצירה."}
                 </p>
 
                 <div className="mt-2 flex flex-wrap gap-2.5 pt-2">
@@ -188,7 +185,7 @@ export function LogoModalViews({
                   </div>
                   <h1 className="mt-1.5 text-2xl font-bold text-white">{en ? "Get in touch" : "יצירת קשר"}</h1>
                   <p className="mt-1 text-xs text-[#cfd7e6]">
-                    לשיתופי פעולה, סדנאות, רעיונות או שאלות לרפאל ארגנטי.
+                    {en ? "For partnerships, commissions, ideas or a conversation with the studio." : "לשיתופי פעולה, סדנאות, רעיונות או שאלות לרפאל ארגנטי."}
                   </p>
                 </div>
 
@@ -272,7 +269,7 @@ export function LogoModalViews({
                           onClick={() => onSwitchSection('admin')}
                         >
                           <LayoutDashboard className="h-3.5 w-3.5 text-[#f8d478]" />
-                          <span>לוח בקרה · ניהול תכנים</span>
+                          <span>{en ? "Studio Admin" : "לוח בקרה · ניהול תכנים"}</span>
                         </CrystalButton>
                       )}
                       <CrystalButton hue="gold" size="sm" onClick={() => onOpenBot()}>
