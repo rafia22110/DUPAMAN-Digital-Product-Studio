@@ -307,7 +307,7 @@ export function UniversalConsentAdapter() {
               boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.16), 0 8px 24px rgba(0,0,0,0.55)',
             }}
             className="group flex cursor-pointer items-center gap-1.5 rounded-full border border-white/15 px-3 py-1.5 text-[11px] text-[#cfd7e6] backdrop-blur-md transition-all hover:border-[#f8d478]/50 hover:text-white"
-            title="ניהול עוגיות, טופס תנאי שימוש ומתאמים אוניברסליים"
+            title={en ? "Manage cookies, terms and universal preferences" : "ניהול עוגיות, טופס תנאי שימוש ומתאמים אוניברסליים"}
           >
             <ShieldCheck className="h-3.5 w-3.5 text-[#f8d478] transition-transform group-hover:scale-110" />
             <span>{translateText("עוגיות, תנאים ומתאם אוניברסלי", language)}</span>
@@ -345,7 +345,7 @@ export function UniversalConsentAdapter() {
                   type="button"
                   onClick={() => setModalOpen(false)}
                   className="cursor-pointer rounded-full border border-white/15 bg-white/[0.04] p-1.5 text-[#cfd7e6] hover:border-white/35 hover:text-white"
-                  aria-label="סגור"
+                  aria-label={en ? "Close" : "סגור"}
                 >
                   <X className="h-4 w-4" />
                 </button>
@@ -446,20 +446,16 @@ export function UniversalConsentAdapter() {
                 <div className="flex flex-col gap-3">
                   <div className="max-h-44 space-y-2 overflow-y-auto rounded-2xl border border-white/14 bg-white/[0.03] p-3.5 text-xs leading-relaxed text-[#dce3f1]">
                     <p>
-                      <strong className="text-[#f8d478]">1. רישוי רב-שכבתי וקניין רוחני:</strong>{' '}
-                      קוד המקור פתוח תחת רישיון <strong>MIT</strong>; מאגר התכנים והמחקרים תחת{' '}
-                      <strong>CC BY-NC-SA 4.0</strong>; סימני המותג DUPAMAN, הלוגואים ומיזמי הדגל
-                      שמורים לרפאל ארגנטי (All Rights Reserved).
+                      <strong className="text-[#f8d478]">1. {en ? "Licensing & Intellectual Property:" : "רישוי רב-שכבתי וקניין רוחני:"}</strong>{' '}
+                      {en ? <>Source code is available under the <strong>MIT</strong> license; the content and research library is under <strong>CC BY-NC-SA 4.0</strong>. DUPAMAN trademarks, logos and flagship ventures are reserved to Rafael Argenti (All Rights Reserved).</> : <>קוד המקור פתוח תחת רישיון <strong>MIT</strong>; מאגר התכנים והמחקרים תחת <strong>CC BY-NC-SA 4.0</strong>; סימני המותג DUPAMAN, הלוגואים ומיזמי הדגל שמורים לרפאל ארגנטי (All Rights Reserved).</>}
                     </p>
                     <p>
-                      <strong className="text-[#84e8ff]">2. פרטיות והגנת מידע:</strong> פרטים הנמסרים
-                      בטופס כרטיס הביקור החי (00) או דרך נקודת הקצה `/api/subscribe` משמשים אך ורק
-                      לתיאום הדגמה, אב-טיפוס או גישה לחדר המיזמים, ואינם נמכרים לצד שלישי.
+                      <strong className="text-[#84e8ff]">2. {en ? "Privacy & Data Protection:" : "פרטיות והגנת מידע:"}</strong>{' '}
+                      {en ? <>Information submitted through the live studio card (00) or the <code>/api/subscribe</code> endpoint is used only to coordinate demos, prototypes or venture-room access, and is not sold to third parties.</> : <>פרטים הנמסרים בטופס כרטיס הביקור החי (00) או דרך נקודת הקצה <code>/api/subscribe</code> משמשים אך ורק לתיאום הדגמה, אב-טיפוס או גישה לחדר המיזמים, ואינם נמכרים לצד שלישי.</>}
                     </p>
                     <p>
-                      <strong className="text-[#f8d478]">3. חדר המיזמים (06 · Venture Vault):</strong>{' '}
-                      הצגת חומרי אבחון ומחקר קליני-רגולטורי (כגון Bio-Oracle) כפופה לשמירה על סודיות
-                      מקצועית ואינה מהווה ייעוץ רפואי או הצעת השקעה פומבית.
+                      <strong className="text-[#f8d478]">3. {en ? "Venture Room (06 · Venture Vault):" : "חדר המיזמים (06 · Venture Vault):"}</strong>{' '}
+                      {en ? "Access to diagnostic and clinical-regulatory research materials (such as Bio-Oracle) is subject to professional confidentiality and does not constitute medical advice or a public investment offer." : "הצגת חומרי אבחון ומחקר קליני-רגולטורי (כגון Bio-Oracle) כפופה לשמירה על סודיות מקצועית ואינה מהווה ייעוץ רפואי או הצעת השקעה פומבית."}
                     </p>
                   </div>
 
@@ -480,7 +476,7 @@ export function UniversalConsentAdapter() {
                       onChange={(e) =>
                         setConsent((prev) => ({ ...prev, signerEmail: e.target.value }))
                       }
-                      placeholder="name@company.com (אופציונלי)"
+                      placeholder={en ? "name@company.com (optional)" : "name@company.com (אופציונלי)"}
                       className="rounded-xl border border-white/18 bg-white/[0.04] px-3 py-2 text-left text-xs text-white placeholder-[#8e9bb2] outline-none focus:border-[#84e8ff]/55"
                     />
                   </div>
@@ -496,7 +492,7 @@ export function UniversalConsentAdapter() {
                       className="h-4 w-4 accent-[#f8d478]"
                     />
                     <span>
-                      אני מאשר/ת את תנאי השימוש, מדיניות הפרטיות והעוגיות של DUPAMAN Studio.
+                      {en ? "I accept the DUPAMAN Studio Terms of Use, Privacy Policy and Cookie Policy." : "אני מאשר/ת את תנאי השימוש, מדיניות הפרטיות והעוגיות של DUPAMAN Studio."}
                     </span>
                   </label>
 
@@ -513,7 +509,7 @@ export function UniversalConsentAdapter() {
                       className="h-4 w-4 accent-[#84e8ff]"
                     />
                     <span>
-                      אישור סודיות לחדר המיזמים (06): אני מתחייב/ת לשמור בסודיות חומרים עסקיים ורפואיים.
+                      {en ? "Venture Room (06) confidentiality: I agree to keep business and medical materials confidential." : "אישור סודיות לחדר המיזמים (06): אני מתחייב/ת לשמור בסודיות חומרים עסקיים ורפואיים."}
                     </span>
                   </label>
                 </div>
@@ -578,7 +574,7 @@ export function UniversalConsentAdapter() {
 
                   <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2">
                     <label className="flex cursor-pointer items-center justify-between gap-2 rounded-xl border border-white/14 bg-white/[0.03] px-3.5 py-2.5 text-xs text-white">
-                      <span>זכוכית בניגודיות גבוהה (High-Contrast Glass)</span>
+                      <span>{en ? "High-Contrast Glass" : "זכוכית בניגודיות גבוהה (High-Contrast Glass)"}</span>
                       <input
                         type="checkbox"
                         checked={consent.highContrastGlass}
@@ -593,7 +589,7 @@ export function UniversalConsentAdapter() {
                     </label>
 
                     <label className="flex cursor-pointer items-center justify-between gap-2 rounded-xl border border-white/14 bg-white/[0.03] px-3.5 py-2.5 text-xs text-white">
-                      <span>הפחתת אנימציות ותנועה (Reduced Motion)</span>
+                      <span>{en ? "Reduced Motion" : "הפחתת אנימציות ותנועה (Reduced Motion)"}</span>
                       <input
                         type="checkbox"
                         checked={consent.reducedMotion}

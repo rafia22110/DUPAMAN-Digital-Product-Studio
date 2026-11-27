@@ -373,7 +373,7 @@ export function BotAndSubsView({
                 <div className="flex shrink-0 items-center justify-between gap-2 border-b border-white/12 pb-3">
                   <div className="flex items-center gap-2.5">
                     <Bot className="h-5 w-5 text-[#f8d478]" />
-                    <span className="text-sm font-semibold text-white">הבוט המארח</span>
+                    <span className="text-sm font-semibold text-white">{translateText("הבוט המארח", language)}</span>
                     <span
                       dir="ltr"
                       style={{ fontFamily: 'var(--font-display)' }}
@@ -401,7 +401,7 @@ export function BotAndSubsView({
                       <button
                         type="button"
                         onClick={handleCollapseSpotlight}
-                        title="חזרה למצב שקט"
+                        title={en ? "Return to idle mode" : "חזרה למצב שקט"}
                         className="inline-flex cursor-pointer items-center gap-1 rounded-lg border border-white/15 bg-white/[0.04] px-2 py-0.5 text-[10px] text-[#cfd7e6] hover:text-white"
                       >
                         <RotateCcw className="h-3 w-3" />
@@ -572,7 +572,7 @@ export function BotAndSubsView({
                     </div>
 
                     <div>
-                      <div className="mb-1.5 text-[11px] text-[#cfd7e6]">בחר צומת עניין:</div>
+                      <div className="mb-1.5 text-[11px] text-[#cfd7e6]">{en ? "Choose areas of interest:" : "בחר צומת עניין:"}</div>
                       <div className="flex flex-wrap gap-1.5">
                         {NODE_CHOICES.map((nodeName) => {
                           const on = selectedNodes.includes(nodeName);

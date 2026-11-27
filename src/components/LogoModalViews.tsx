@@ -192,9 +192,9 @@ export function LogoModalViews({
                 {contactSent ? (
                   <div className="flex flex-col items-center gap-3 py-6 text-center">
                     <CheckCircle2 className="h-9 w-9 text-emerald-300" />
-                    <div className="text-base font-semibold text-white">ההודעה נשלחה בהצלחה</div>
+                    <div className="text-base font-semibold text-white">{en ? "Message sent successfully" : "ההודעה נשלחה בהצלחה"}</div>
                     <p className="text-xs text-[#d6dfee]">
-                      תודה {contactName || ''}, נחזור אליך בקרוב לכתובת {contactEmail}.
+                      {en ? `Thank you ${contactName || ''}. We will get back to you at ${contactEmail}.` : `תודה ${contactName || ''}, נחזור אליך בקרוב לכתובת ${contactEmail}.`}
                     </p>
                     <CrystalButton
                       hue="gold"
@@ -204,7 +204,7 @@ export function LogoModalViews({
                         setContactMsg('');
                       }}
                     >
-                      שליחת הודעה נוספת
+                      {en ? "Send another message" : "שליחת הודעה נוספת"}
                     </CrystalButton>
                   </div>
                 ) : (
@@ -258,7 +258,7 @@ export function LogoModalViews({
                   <div className="flex flex-col items-center gap-3 py-4 text-center">
                     <CheckCircle2 className="h-9 w-9 text-[#84e8ff]" />
                     <div className="text-base font-semibold text-white">
-                      מחובר כ-{session.name}
+                      {en ? `Signed in as ${session.name}` : `מחובר כ-${session.name}`}
                     </div>
                     <div className="font-mono text-xs text-[#c7d3e6]">{session.email}</div>
                     <div className="mt-2 flex flex-wrap justify-center gap-2">
@@ -274,11 +274,11 @@ export function LogoModalViews({
                       )}
                       <CrystalButton hue="gold" size="sm" onClick={() => onOpenBot()}>
                         <Bot className="h-3.5 w-3.5 text-[#f8d478]" />
-                        <span>למנהל המנויים והבוט</span>
+                        <span>{en ? "Open AI host & subscriptions" : "למנהל המנויים והבוט"}</span>
                       </CrystalButton>
                       <CrystalButton hue="neutral" size="sm" onClick={handleLogout}>
                         <LogOut className="h-3.5 w-3.5" />
-                        <span>התנתק</span>
+                        <span>{en ? "Sign out" : "התנתק"}</span>
                       </CrystalButton>
                     </div>
                   </div>
@@ -304,7 +304,7 @@ export function LogoModalViews({
                     />
                     <CrystalButton hue="cyan" size="md" type="submit" className="mt-1 w-full">
                       <LogIn className="h-3.5 w-3.5" />
-                      <span>כניסה למערכת</span>
+                      <span>{en ? "Sign in" : "כניסה למערכת"}</span>
                     </CrystalButton>
                   </form>
                 )}
