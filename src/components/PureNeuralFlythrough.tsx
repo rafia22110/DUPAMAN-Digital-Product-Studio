@@ -1584,7 +1584,7 @@ export function PureNeuralFlythrough({
                           ·
                         </span>
                         <span className="font-sans text-[10px] tracking-[0.22em] text-[#dce6f5]/80">
-                          HERITAGE · EDUCATION · AI
+                          {language === 'en' ? 'INTELLIGENCE · CREATIVITY · HUMANITY' : 'HERITAGE · EDUCATION · AI'}
                         </span>
                       </div>
 
@@ -1597,17 +1597,22 @@ export function PureNeuralFlythrough({
 
                       {/* Welcome Greeting & Main Display Title */}
                       <p className="mt-3 text-[11px] font-medium tracking-[0.22em] text-[#9de6ff]/90">
-                        ברוכים הבאים אל המרחב החי
+                        {language === 'en' ? 'WELCOME TO THE LIVING STUDIO' : 'ברוכים הבאים אל המרחב החי'}
                       </p>
 
                       <h3 className="mt-1.5 bg-gradient-to-b from-white via-[#fff7e2] to-[#ebc46c] bg-clip-text font-sans text-2xl font-light tracking-tight text-transparent sm:text-[30px]">
-                        <span className="font-semibold">דופמין</span> — מרחב ידע, יצירה והשראה
+                        {language === 'en' ? (
+                          <><span className="font-semibold">DUPAMAN</span> — A Space for Knowledge, Creation & Inspiration</>
+                        ) : (
+                          <><span className="font-semibold">דופמין</span> — מרחב ידע, יצירה והשראה</>
+                        )}
                       </h3>
 
                       {/* Refined Editorial Welcome Copy */}
                       <p className="mt-3 max-w-md text-xs leading-7 font-light text-[#edf2fa]/92 sm:text-[13.5px]">
-                        בית מרחבי נקי ללא גלילה המאחד חדשות ומדריכים נבחרים, מאגרי חדשנות וחינוך,
-                        ואקדמיה חיה — בעיצוב זכוכית צלול השומר על הקשב, הסקרנות והעומק.
+                        {language === 'en'
+                          ? 'An immersive, zero-scroll environment bringing together curated insights, innovation and learning resources, and a living academy — shaped in lucid glass to preserve focus, curiosity and depth.'
+                          : 'בית מרחבי נקי ללא גלילה המאחד חדשות ומדריכים נבחרים, מאגרי חדשנות וחינוך, ואקדמיה חיה — בעיצוב זכוכית צלול השומר על הקשב, הסקרנות והעומק.'}
                       </p>
 
                       {/* Three Luxury Architectural Pillars */}
@@ -1617,7 +1622,7 @@ export function PureNeuralFlythrough({
                             01 — 06
                           </div>
                           <div className="mt-0.5 text-[11px] font-light text-[#dce4f2]">
-                            שישה עולמות תוכן
+                            {language === 'en' ? 'Six Worlds of Discovery' : 'שישה עולמות תוכן'}
                           </div>
                         </div>
                         <div className="px-2">
@@ -1625,7 +1630,7 @@ export function PureNeuralFlythrough({
                             Zero-G
                           </div>
                           <div className="mt-0.5 text-[11px] font-light text-[#dce4f2]">
-                            חוויה ללא גלילה
+                            {language === 'en' ? 'Zero-Scroll Experience' : 'חוויה ללא גלילה'}
                           </div>
                         </div>
                         <div className="px-2">
@@ -1633,14 +1638,14 @@ export function PureNeuralFlythrough({
                             Concierge AI
                           </div>
                           <div className="mt-0.5 text-[11px] font-light text-[#dce4f2]">
-                            בוט חכם ומנויים
+                            {language === 'en' ? 'AI Concierge & Membership' : 'בוט חכם ומנויים'}
                           </div>
                         </div>
                       </div>
 
                       {/* Subtle Luxury Footer / Click Invitation */}
                       <div className="mt-4 flex w-full items-center justify-between text-[11px] tracking-wide">
-                        <span className="font-light text-[#cfd7e6]/75">רפאל ארגנטי · DUPAMAN</span>
+                        <span className="font-light text-[#cfd7e6]/75">{language === 'en' ? 'Rafael Argenti · DUPAMAN' : 'רפאל ארגנטי · DUPAMAN'}</span>
                         <span className="inline-flex items-center gap-2 font-medium text-[#ffe8ac]">
                           <span>{translateText("לחץ לכניסה לבוט ולמנהל המנויים", language)}</span>
                           <span aria-hidden="true">←</span>
