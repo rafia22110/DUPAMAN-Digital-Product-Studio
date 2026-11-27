@@ -204,6 +204,8 @@ export function StudioExhibitCard({
   onOpenInBot,
   compact = false,
 }: StudioExhibitCardProps) {
+  const language = usePublicLanguage();
+  const en = language === 'en';
   const [demoOpen, setDemoOpen] = useState(false);
   const isGold = exhibit.hue === 'gold';
 
@@ -211,7 +213,7 @@ export function StudioExhibitCard({
     <>
       <CrystalCard3D hue={exhibit.hue} className="w-full">
         <div
-          dir="rtl"
+          dir={en ? "ltr" : "rtl"}
           className={`relative grid grid-cols-1 ${
             compact ? 'gap-3 p-4' : 'gap-6 p-6 sm:p-8 lg:grid-cols-12'
           }`}
@@ -245,7 +247,7 @@ export function StudioExhibitCard({
                   >
                     {exhibit.nodeCode}
                   </span>
-                  <span className="font-medium">{exhibit.nodeTitle}</span>
+                  <span className="font-medium">{translateText(exhibit.nodeTitle, language)}</span>
                 </div>
 
                 <span
@@ -270,7 +272,7 @@ export function StudioExhibitCard({
                   compact ? 'text-base sm:text-lg' : 'text-2xl sm:text-[28px]'
                 }`}
               >
-                {exhibit.title}
+                {translateText(exhibit.title, language)}
               </h2>
 
               {/* Synaptic Accent Hairline */}
@@ -340,7 +342,7 @@ export function StudioExhibitCard({
                     }
                   >
                     <Bot className="h-3.5 w-3.5" />
-                    <span>{exhibit.actionLabel}</span>
+                    <span>{translateText(exhibit.actionLabel, language)}</span>
                     <ArrowUpRight className="h-3.5 w-3.5 opacity-80" />
                   </CrystalButton>
                 )}

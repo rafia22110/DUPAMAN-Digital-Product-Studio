@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { AspectRatio } from '../types/studio';
 import { BRAIN_NODES, type BrainNodeSpec } from '../data/brainNodes';
+import { usePublicLanguage, translateText } from '../i18n';
 import {
   type AnchorPoint,
   type EntranceMetrics,
