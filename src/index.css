@@ -2,8 +2,8 @@
 
 @theme {
   --font-serif: "Cormorant Garamond", Georgia, serif;
-  --font-sans: "Heebo", "Assistant", system-ui, -apple-system, sans-serif;
-  --font-display: "Space Grotesk", "Heebo", system-ui, sans-serif;
+  --font-sans: "Inter", "Manrope", "Heebo", system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", "Manrope", "Heebo", system-ui, sans-serif;
   --font-mono: "JetBrains Mono", ui-monospace, SFMono-Regular, monospace;
 }
 
@@ -18,7 +18,7 @@
     overflow: hidden;
     background-color: #020204;
     color: #f3f2ee;
-    font-family: "Heebo", 'Assistant', system-ui, sans-serif;
+    font-family: "Inter", "Manrope", "Heebo", system-ui, sans-serif;
     overscroll-behavior: none;
   }
 
