@@ -1066,6 +1066,7 @@ export function PureNeuralFlythrough({
   onCanvasReady,
   onVideosReady,
 }: PureNeuralFlythroughProps) {
+  const language = usePublicLanguage();
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const videoARef = useRef<HTMLVideoElement | null>(null);
   const videoBRef = useRef<HTMLVideoElement | null>(null);
@@ -1474,7 +1475,7 @@ export function PureNeuralFlythrough({
             className="pointer-events-none absolute z-30"
           >
             <div
-              dir="rtl"
+              dir={language === "he" ? "rtl" : "ltr"}
               style={{
                 transformStyle: 'preserve-3d',
                 transform: `rotateX(${(hoveredCard.tiltX * 10 + 3).toFixed(2)}deg) rotateY(${(
@@ -1640,7 +1641,7 @@ export function PureNeuralFlythrough({
                       <div className="mt-4 flex w-full items-center justify-between text-[11px] tracking-wide">
                         <span className="font-light text-[#cfd7e6]/75">רפאל ארגנטי · DUPAMAN</span>
                         <span className="inline-flex items-center gap-2 font-medium text-[#ffe8ac]">
-                          <span>לחץ לכניסה לבוט ולמנהל המנויים</span>
+                          <span>{translateText("לחץ לכניסה לבוט ולמנהל המנויים", language)}</span>
                           <span aria-hidden="true">←</span>
                         </span>
                       </div>
@@ -1658,15 +1659,15 @@ export function PureNeuralFlythrough({
                         <span aria-hidden="true" className="text-white/40">
                           ·
                         </span>
-                        <span>{hoveredCard.node.kicker}</span>
+                        <span>{translateText(hoveredCard.node.kicker, language)}</span>
                       </div>
 
                       <h3 className="mt-1.5 font-sans text-base font-semibold tracking-tight text-white">
-                        {hoveredCard.node.title}
+                        {translateText(hoveredCard.node.title, language)}
                       </h3>
 
                       <p className="mt-1.5 text-xs leading-relaxed text-[#e6e9f0]/92">
-                        {hoveredCard.node.description}
+                        {translateText(hoveredCard.node.description, language)}
                       </p>
 
                       <div
@@ -1674,7 +1675,7 @@ export function PureNeuralFlythrough({
                           hoveredCard.node.hue === 'gold' ? 'text-[#f8d478]' : 'text-[#84e8ff]'
                         }`}
                       >
-                        <span>{hoveredCard.node.ctaLabel}</span>
+                        <span>{translateText(hoveredCard.node.ctaLabel, language)}</span>
                         <span aria-hidden="true">←</span>
                       </div>
                     </>

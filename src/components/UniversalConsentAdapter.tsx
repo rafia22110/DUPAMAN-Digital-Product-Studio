@@ -12,6 +12,7 @@ import {
   X,
 } from 'lucide-react';
 import { CrystalButton, CrystalCard3D } from './GlassPrimitives';
+import { usePublicLanguage, translateText } from '../i18n';
 
 export type UniversalThemePreset = 'dupaman-obsidian' | 'edtech-emerald' | 'fintech-sapphire';
 
@@ -134,6 +135,8 @@ export function openUniversalConsentModal(tab: 'cookies' | 'terms' | 'adapters' 
 }
 
 export function UniversalConsentAdapter() {
+  const language = usePublicLanguage();
+  const en = language === 'en';
   const [consent, setConsent] = useState<UniversalConsentState>(() =>
     loadUniversalConsent()
   );
@@ -222,8 +225,8 @@ export function UniversalConsentAdapter() {
       {/* 1. FLOATING GLASS CONSENT PILL (When user has not decided yet — Zero-Scroll, Non-Blocking) */}
       {!consent.decided && !modalOpen && (
         <aside
-          dir="rtl"
-          aria-label="הסכמת עוגיות ותנאי שימוש"
+          dir={en ? "ltr" : "rtl"}
+          aria-label={en ? "Cookie consent and terms" : "הסכמת עוגיות ותנאי שימוש"}
           style={{
             background:
               'linear-gradient(135deg, rgba(14,22,38,0.88) 0%, rgba(7,11,22,0.94) 100%)',
@@ -277,14 +280,14 @@ export function UniversalConsentAdapter() {
               }}
             >
               <Sliders className="h-3.5 w-3.5" />
-              <span>התאמה ותנאים</span>
+              <span>{translateText("התאמה ותנאים", language)}</span>
             </CrystalButton>
             <CrystalButton hue="neutral" size="sm" onClick={handleQuickEssentialOnly}>
-              <span>הכרחיות בלבד</span>
+              <span>{translateText("הכרחיות בלבד", language)}</span>
             </CrystalButton>
             <CrystalButton hue="gold" size="sm" onClick={handleQuickAcceptAll}>
               <Check className="h-3.5 w-3.5" />
-              <span>אישור והמשך</span>
+              <span>{translateText("אישור והמשך", language)}</span>
             </CrystalButton>
           </div>
         </aside>
@@ -307,7 +310,7 @@ export function UniversalConsentAdapter() {
             title="ניהול עוגיות, טופס תנאי שימוש ומתאמים אוניברסליים"
           >
             <ShieldCheck className="h-3.5 w-3.5 text-[#f8d478] transition-transform group-hover:scale-110" />
-            <span>עוגיות, תנאים ומתאם אוניברסלי</span>
+            <span>{translateText("עוגיות, תנאים ומתאם אוניברסלי", language)}</span>
           </button>
         </div>
       )}
@@ -357,7 +360,7 @@ export function UniversalConsentAdapter() {
                   onClick={() => setActiveTab('cookies')}
                 >
                   <Cookie className="h-3.5 w-3.5" />
-                  <span>1. עוגיות וזיכרון סוכן</span>
+                  <span>{translateText("1. עוגיות וזיכרון סוכן", language)}</span>
                 </CrystalButton>
                 <CrystalButton
                   hue="cyan"
@@ -366,7 +369,7 @@ export function UniversalConsentAdapter() {
                   onClick={() => setActiveTab('terms')}
                 >
                   <FileCheck2 className="h-3.5 w-3.5" />
-                  <span>2. טופס תנאי שימוש ופרטיות</span>
+                  <span>{translateText("2. טופס תנאי שימוש ופרטיות", language)}</span>
                 </CrystalButton>
                 <CrystalButton
                   hue="gold"
@@ -375,7 +378,7 @@ export function UniversalConsentAdapter() {
                   onClick={() => setActiveTab('adapters')}
                 >
                   <Layers className="h-3.5 w-3.5" />
-                  <span>3. מתאמים אוניברסליים לעיצוב</span>
+                  <span>{translateText("3. מתאמים אוניברסליים לעיצוב", language)}</span>
                 </CrystalButton>
               </div>
 
@@ -467,7 +470,7 @@ export function UniversalConsentAdapter() {
                       onChange={(e) =>
                         setConsent((prev) => ({ ...prev, signerName: e.target.value }))
                       }
-                      placeholder="שם מלא / ארגון (אופציונלי לתיעוד הסכמה)"
+                      placeholder={en ? "Full name / organization (optional)" : "שם מלא / ארגון (אופציונלי לתיעוד הסכמה)"}
                       className="rounded-xl border border-white/18 bg-white/[0.04] px-3 py-2 text-xs text-white placeholder-[#8e9bb2] outline-none focus:border-[#84e8ff]/55"
                     />
                     <input
@@ -635,7 +638,7 @@ export function UniversalConsentAdapter() {
                   </CrystalButton>
                   <CrystalButton hue="gold" size="sm" type="submit">
                     <Sparkles className="h-3.5 w-3.5" />
-                    <span>שמור תנאים והתאמות</span>
+                    <span>{translateText("שמור תנאים והתאמות", language)}</span>
                   </CrystalButton>
                 </div>
               </div>

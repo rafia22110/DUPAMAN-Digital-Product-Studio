@@ -2,6 +2,7 @@ import { type FormEvent, useState } from 'react';
 import { ArrowUpRight, Bot, Box, Play, ShieldCheck, Sparkles, Terminal, X } from 'lucide-react';
 import type { StudioExhibitSample } from '../data/studioSamples';
 import { ExhibitLiveStage } from './ExhibitLiveStage';
+import { usePublicLanguage, translateText } from '../i18n';
 import { CrystalButton, CrystalCard3D, CrystalLinkButton } from './GlassPrimitives';
 
 interface StudioExhibitCardProps {
@@ -22,6 +23,8 @@ function LiveConceptDemoModal({
   onClose: () => void;
   onOpenInBot?: (prompt: string, topic: string) => void;
 }) {
+  const language = usePublicLanguage();
+  const en = language === 'en';
   const [agentQuery, setAgentQuery] = useState('');
   const [agentResult, setAgentResult] = useState<{
     action: string;
@@ -78,14 +81,14 @@ function LiveConceptDemoModal({
         className="w-full max-w-2xl"
       >
         <CrystalCard3D hue={exhibit.hue} interactive={false}>
-          <div dir="rtl" className="flex flex-col gap-4 p-6">
+          <div dir={en ? "ltr" : "rtl"} className="flex flex-col gap-4 p-6">
             <div className="flex items-start justify-between gap-3 border-b border-white/12 pb-3">
               <div>
                 <div className="flex items-center gap-2 text-[11px] text-[#84e8ff]">
                   <span className="inline-flex h-2 w-2 animate-pulse rounded-full bg-emerald-400" />
-                  <span>הדגמה אינטראקטיבית חיה · {exhibit.nodeTitle}</span>
+                  <span>הדגמה אינטראקטיבית חיה · {translateText(exhibit.nodeTitle, language)}</span>
                 </div>
-                <h3 className="mt-1 text-xl font-bold text-white">{exhibit.title}</h3>
+                <h3 className="mt-1 text-xl font-bold text-white">{translateText(exhibit.title, language)}</h3>
               </div>
               <button
                 type="button"
@@ -135,7 +138,7 @@ function LiveConceptDemoModal({
                     type="text"
                     value={agentQuery}
                     onChange={(e) => setAgentQuery(e.target.value)}
-                    placeholder="הקלד פקודה בנקאית לסוכן (במקום תפריטים)..."
+                    placeholder={translateText("הקלד פקודה בנקאית לסוכן (במקום תפריטים)...", language)}
                     className="w-full rounded-xl border border-white/18 bg-white/[0.04] px-3.5 py-2 text-xs text-white placeholder-[#8e9bb2] outline-none focus:border-[#84e8ff]/55"
                   />
                   <CrystalButton hue="cyan" size="sm" type="submit">
@@ -179,10 +182,10 @@ function LiveConceptDemoModal({
                 }}
               >
                 <Bot className="h-3.5 w-3.5 text-[#f8d478]" />
-                <span>המשך שיחה בבוט</span>
+                <span>{translateText("המשך שיחה בבוט", language)}</span>
               </CrystalButton>
               <CrystalButton hue="neutral" size="sm" onClick={onClose}>
-                <span>סגור הדגמה</span>
+                <span>{translateText("סגור הדגמה", language)}</span>
               </CrystalButton>
             </div>
           </div>
@@ -257,7 +260,7 @@ export function StudioExhibitCard({
                       isGold ? 'bg-[#f8d478]' : 'bg-[#84e8ff]'
                     }`}
                   />
-                  <span>{exhibit.status}</span>
+                  <span>{translateText(exhibit.status, language)}</span>
                 </span>
               </div>
 
@@ -284,7 +287,7 @@ export function StudioExhibitCard({
                   compact ? 'text-xs' : 'text-sm sm:text-[15px]'
                 }`}
               >
-                {exhibit.summary}
+                {translateText(exhibit.summary, language)}
               </p>
             </div>
 
@@ -310,7 +313,7 @@ export function StudioExhibitCard({
                     onClick={() => setDemoOpen(true)}
                   >
                     <Play className="h-3.5 w-3.5" />
-                    <span>הפעל הדגמה מורחבת</span>
+                    <span>{translateText("הפעל הדגמה מורחבת", language)}</span>
                   </CrystalButton>
                 )}
 
@@ -323,7 +326,7 @@ export function StudioExhibitCard({
                     size={compact ? 'sm' : 'md'}
                   >
                     <Sparkles className="h-3.5 w-3.5 opacity-85" />
-                    <span>{exhibit.actionLabel}</span>
+                    <span>{translateText(exhibit.actionLabel, language)}</span>
                   </CrystalLinkButton>
                 ) : (
                   <CrystalButton
